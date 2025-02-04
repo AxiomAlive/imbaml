@@ -60,7 +60,7 @@ class ExperimentMain:
         else:
             raise Exception("Invalid --automl option. Options available: ['imba', 'ag'].")
 
-        runner.define_tasks()
+        runner.define_tasks((1, 24))
 
         runner.run(30)
 

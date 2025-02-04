@@ -5,12 +5,13 @@ env
 *.iml
 *.lock
 *.out
+pyproject.toml
 
 AGModels/
 AutogluonModels/
 experiment/AutogluonModels/
 datasets/
-instanceSpace-master/
+InstanceSpace-master/
 imbalanced-ensemble/
 logs/
 openml_cache/

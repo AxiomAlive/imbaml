@@ -73,6 +73,7 @@ class AGExperimentRunner(ZenodoExperimentRunner):
             .fit(
             autogluon_dataset_train,
             presets=[self._preset, 'optimize_for_deployment'],
+            save_bag_folds=True
         )
 
         logger.info(f"Training on dataset {dataset_name} finished.")
