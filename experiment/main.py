@@ -18,11 +18,11 @@ class ExperimentMain:
         parser.add_argument('--automl', action='store', dest='automl', default='imba')
         parser.add_argument('--out', action='store', dest='out', default='file')
         parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
-        parser.add_argument('--trials', action='store', dest='t', default=30)
+        parser.add_argument('--trials', action='store', dest='trials', default=30)
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
-        logging_output = getattr(args, 'o')
+        logging_output = getattr(args, 'out')
         autogluon_preset = getattr(args, 'preset')
         trials = getattr(args, 'trials')
 

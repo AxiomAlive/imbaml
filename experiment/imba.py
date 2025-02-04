@@ -109,7 +109,7 @@ class ImbaExperimentRunner(ZenodoExperimentRunner):
                 space=ray_configuration,
                 metric='loss',
                 mode='min'),
-            max_concurrent=4,
+            max_concurrent=8,
             batch=True)
 
         tuner = ray.tune.Tuner(
