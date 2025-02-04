@@ -69,7 +69,7 @@ class ImbaExperimentRunner(ZenodoExperimentRunner):
             estimator=clf,
             X=X,
             y=y,
-            cv=StratifiedKFold(n_splits=3),
+            cv=StratifiedKFold(n_splits=5),
             scoring=make_scorer(metric, pos_label=1),
             error_score='raise').mean()
 
