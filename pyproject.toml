@@ -1,0 +1,12 @@
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.8.10"
+
+[tool.poetry.group.dev.dependencies]
+"autogluon.tabular" = {version="^1.1.1", python = ">=3.8.10,<3.12"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
