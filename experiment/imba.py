@@ -37,25 +37,35 @@ from .runner import ExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRu
 
 import ray
 from ray.tune.search.hyperopt import HyperOptSearch
+from ray.train import RunConfig
 
 
 logger = logging.getLogger(__name__)
 
 
-class RayTrainable(ray.tune.Trainable):
-    def setup(self, config):
-        self.algorithm_configuration = config["algorithm_configuration"]
-        self.metric = config["metric"]
-        self.X = config['X']
-        self.y = config['y']
+def ray_trainable(config):
+    trial_result = ImbaExperimentRunner.compute_metric_score(
+        config['algorithm_configuration'],
+        config['metric'],
+        config['X'],
+        config['y'])
+    ray.train.report(trial_result)
 
-    def step(self):
-        trial_result = ImbaExperimentRunner.compute_metric_score(
-            self.algorithm_configuration,
-            self.metric,
-            self.X,
-            self.y)
-        return {"loss": trial_result['loss']}
+
+# class RayTrainable(ray.tune.Trainable):
+#     def setup(self, config):
+#         self.algorithm_configuration = config["algorithm_configuration"]
+#         self.metric = config["metric"]
+#         self.X = config['X']
+#         self.y = config['y']
+#
+#     def step(self):
+#         trial_result = ImbaExperimentRunner.compute_metric_score(
+#             self.algorithm_configuration,
+#             self.metric,
+#             self.X,
+#             self.y)
+#         return {"loss": trial_result['loss']}
 
 
 class ImbaExperimentRunner(ZenodoExperimentRunner):
@@ -73,7 +83,7 @@ class ImbaExperimentRunner(ZenodoExperimentRunner):
             scoring=make_scorer(metric, pos_label=1),
             error_score='raise').mean()
 
-        return {'loss': loss_value, 'status': STATUS_OK}
+        return {'loss': -loss_value, 'status': STATUS_OK}
 
     @ExceptionWrapper.log_exception
     def fit(
@@ -109,17 +119,23 @@ class ImbaExperimentRunner(ZenodoExperimentRunner):
                 space=ray_configuration,
                 metric='loss',
                 mode='min'),
-            max_concurrent=8,
+            max_concurrent=5,
             batch=True)
 
         tuner = ray.tune.Tuner(
-            RayTrainable,
+            ray_trainable,
             tune_config=ray.tune.TuneConfig(
                 metric='loss',
-                mode='max',
+                mode='min',
                 search_alg=search_algo,
-                num_samples=self._n_evals,
-                reuse_actors=True),
+                num_samples=self._n_evals),
+            # run_config=ray.train.RunConfig(
+            #     stop={"training_iteration": 1},
+            #     checkpoint_config=ray.train.CheckpointConfig(
+            #         checkpoint_at_end=False
+            #     )
+            # )
+                # reuse_actors=True),
             # param_space=ray_configuration
         )
 
