@@ -7,23 +7,20 @@ run_experiment() {
   declare out='file'
   declare automl='imba'
   declare preset='good_quality'
-  declare trials=30
+  declare trials=0
 
   # TODO: check for flags for comparison.
-  if [[ "$*" == *"c"* ]]
-  then
+  if [[ "$*" == *"c"* ]]; then
     out="console"
   fi
 
-  if [[ "$*" == *"c"* ]]
-    then
-      out="console"
-    fi
+  if [[ "$*" == *"ag"* ]]; then
+    automl="ag"
+  fi
 
-  if [[ "$*" == *"50"* ]]
-      then
-        trials=50
-      fi
+  if [[ "$*" == *"50"* ]]; then
+    trials=50
+  fi
 
 #    if [[ ${args[2]} == "c" ]]; then
 #        out="console"

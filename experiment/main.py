@@ -4,11 +4,13 @@ import os
 import shutil
 import sys
 from datetime import datetime
+from typing import Optional
 
 from setuptools import setup
 
 import numpy as np
 from experiment.runner import OpenMLExperimentRunner
+from pathlib import Path
 
 
 class ExperimentMain:
@@ -18,7 +20,7 @@ class ExperimentMain:
         parser.add_argument('--automl', action='store', dest='automl', default='imba')
         parser.add_argument('--out', action='store', dest='out', default='file')
         parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
-        parser.add_argument('--trials', action='store', dest='trials', default=30)
+        parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
@@ -26,11 +28,16 @@ class ExperimentMain:
         autogluon_preset = getattr(args, 'preset')
         trials = getattr(args, 'trials')
 
+        if trials is not None and trials == 0:
+            trials = None
+
         if logging_output == 'file':
             if automl == 'ag':
                 log_file_name = 'logs/AG/'
             else:
                 log_file_name = 'logs/Imba/'
+
+            Path(log_file_name).mkdir(parents=True, exist_ok=True)
             log_file_name += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'
 
             logging.basicConfig(
@@ -46,11 +53,11 @@ class ExperimentMain:
                 format='%(asctime)s - %(levelname)s - %(message)s'
             )
         else:
-            raise Exception("Invalid --o option. Options available: ['file', 'console'].")
+            raise ValueError("Invalid --out option. Options available: ['file', 'console'].")
 
         if automl == 'ag':
             if autogluon_preset not in ['medium_quality', 'good_quality']:
-                raise Exception("Invalid --preset option. Options available: ['medium_quality', 'good_quality'].")
+                raise ValueError("Invalid --preset option. Options available: ['medium_quality', 'good_quality'].")
 
             from experiment.autogluon import AGExperimentRunner
 
@@ -60,7 +67,7 @@ class ExperimentMain:
 
             runner = ImbaExperimentRunner()
         else:
-            raise Exception("Invalid --automl option. Options available: ['imba', 'ag'].")
+            raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
 
         runner.define_tasks()
 

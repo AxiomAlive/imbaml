@@ -31,7 +31,7 @@ class ExperimentRunner(ABC):
     def __init__(self, *args, **kwargs):
         self._tasks: List[Dataset, ...] = []
         self._id_counter = itertools.count(start=1)
-        self._n_evals = 10
+        self._n_evals = 30
         self._fitted_model: FittedModel
 
         self._configure_environment()
