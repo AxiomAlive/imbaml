@@ -30,10 +30,11 @@ from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler
 
-from config_spaces.ada import AdaReweightedGenerator
-from config_spaces.forest import RandomForestGenerator, BRFGenerator
+from config_spaces.boost import AdaReweightedGenerator
+from config_spaces.bag import BaggingEnsembleGenerator
+from config_spaces.bag import BRFGenerator
 from utils.decorators import ExceptionWrapper
-from .runner import ExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from .runner import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
 
 import ray
 from ray.tune.search.hyperopt import HyperOptSearch
@@ -94,15 +95,12 @@ class ImbaExperimentRunner(ZenodoExperimentRunner):
             dataset_name: str
             ):
 
-        number_of_instances = X_train.shape[0]
-        number_of_columns = X_train.shape[1]
-        logger.info(f'N = {number_of_instances}. M = {number_of_columns}')
-
         model_classes = [
                 AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
                 AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
                 AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
-                BRFGenerator.generate_algorithm_configuration_space()
+                BRFGenerator.generate_algorithm_configuration_space(),
+                BaggingEnsembleGenerator.generate_algorithm_configuration_space()
             ]
 
         algorithms_configuration = hp.choice("algorithm_configuration", model_classes)

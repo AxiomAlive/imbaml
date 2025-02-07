@@ -27,7 +27,7 @@ from utils.decorators import ExceptionWrapper
 logger = logging.getLogger(__name__)
 FittedModel = TypeVar('FittedModel', bound=Any)
 
-class ExperimentRunner(ABC):
+class BenchmarkExperimentRunner(ABC):
     def __init__(self, *args, **kwargs):
         self._tasks: List[Dataset, ...] = []
         self._id_counter = itertools.count(start=1)
@@ -57,6 +57,9 @@ class ExperimentRunner(ABC):
     def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
         raise NotImplementedError()
 
+    def make_imbalance(self):
+        raise NotImplementedError
+
     def _log_val_loss_alongside_model_class(self, losses):
         for m, l in losses.items():
             logger.info(f"Validation loss: {float(l):.3f}")
@@ -65,15 +68,13 @@ class ExperimentRunner(ABC):
     def get_tasks(self):
         return self._tasks
 
+    @ExceptionWrapper.log_exception
     def run(self, n_evals: Optional[int] = None):
         if n_evals is not None:
             self._n_evals = n_evals
         for task in self._tasks:
             if task is None:
                 return
-
-            logger.info(f"{task.id}...Loaded dataset name: {task.name}.")
-            logger.info(f'N: {task.X.shape[0]}. M: {task.X.shape[1]}')
 
             if isinstance(task.X, np.ndarray):
                 X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(task.X, task.y)
@@ -85,6 +86,11 @@ class ExperimentRunner(ABC):
 
                 X, y = preprocessed_data
                 X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(X, y.squeeze())
+            else:
+                raise TypeError(f"pd.DataFrame or np.ndarray expected. Got: {type(task.X)}")
+
+            logger.info(f"{task.id}...Loaded dataset name: {task.name}.")
+            logger.info(f'N: {X_train.shape[0]}. M: {X_train.shape[1]}')
 
             class_belongings = Counter(y_train)
             logger.info(class_belongings)
@@ -128,13 +134,9 @@ class ExperimentRunner(ABC):
             # estimated_dataset_size_in_memory = y_train.memory_usage(deep=True) / (1024 ** 2)
             # logger.info(f"Dataset size: {estimated_dataset_size_in_memory}")
 
-            def fit_predict_evaluate():
-                self.fit(X_train, y_train, task.target_label, task.name)
-                y_predictions = self.predict(X_test)
-                self.examine_quality(y_test, y_predictions, positive_class_label)
-                # shutil.rmtree("/home/max/ray_results")
-                # shutil.rmtree("/tmp/ray"
-            ExceptionWrapper.log_exception(fit_predict_evaluate)()
+            self.fit(X_train, y_train, task.target_label, task.name)
+            y_predictions = self.predict(X_test)
+            self.examine_quality(y_test, y_predictions, positive_class_label)
 
     def examine_quality(self, y_test, y_pred, pos_label):
         f1 = fbeta_score(y_test, y_pred, beta=1, pos_label=pos_label)
@@ -200,7 +202,7 @@ class ExperimentRunner(ABC):
             stratify=y)
 
 
-class ZenodoExperimentRunner(ExperimentRunner):
+class ZenodoExperimentRunner(BenchmarkExperimentRunner):
     def __init__(self):
         super().__init__()
         self.__datasets = fetch_datasets(data_home='datasets/imbalanced', verbose=True)
@@ -220,7 +222,7 @@ class ZenodoExperimentRunner(ExperimentRunner):
             self._tasks.append(self.load_dataset(i))
 
 
-class OpenMLExperimentRunner(ExperimentRunner):
+class OpenMLExperimentRunner(BenchmarkExperimentRunner):
     def __init__(self):
         super().__init__()
 

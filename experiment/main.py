@@ -21,12 +21,14 @@ class ExperimentMain:
         parser.add_argument('--out', action='store', dest='out', default='file')
         parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
         parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
+        parser.add_argument('--tasks', action='store', dest='tasks', type=tuple, nargs='*', default=None)
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
         logging_output = getattr(args, 'out')
         autogluon_preset = getattr(args, 'preset')
         trials = getattr(args, 'trials')
+        tasks = getattr(args, 'tasks')
 
         if trials is not None and trials == 0:
             trials = None
@@ -69,7 +71,7 @@ class ExperimentMain:
         else:
             raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
 
-        runner.define_tasks()
+        runner.define_tasks(tasks)
 
         runner.run(trials)
 

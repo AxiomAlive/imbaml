@@ -23,7 +23,7 @@ import torch
 import logging
 import pickle
 
-from experiment.runner import ExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from experiment.runner import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.linear_model import LogisticRegression
 
@@ -73,7 +73,7 @@ class AGExperimentRunner(ZenodoExperimentRunner):
             .fit(
             autogluon_dataset_train,
             presets=[self._preset, 'optimize_for_deployment'],
-            save_bag_folds=True
+            num_stack_levels=2
         )
 
         logger.info(f"Training on dataset {dataset_name} finished.")
@@ -84,7 +84,7 @@ class AGExperimentRunner(ZenodoExperimentRunner):
             logger.error("No best model found.")
             return
 
-        best_model_name = autogluon_predictor.get_model_best()
+        best_model_name = autogluon_predictor.model_best
 
         val_losses = {best_model_name: val_scores.max()}
         self._log_val_loss_alongside_model_class(val_losses)

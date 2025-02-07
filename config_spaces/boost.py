@@ -9,6 +9,7 @@ import timeit
 from hyperopt.pyll import scope
 from imbens.ensemble import AdaCostClassifier, AsymBoostClassifier
 from imbens.ensemble.reweighting import AdaUBoostClassifier
+from imblearn.ensemble import BalancedRandomForestClassifier
 from matplotlib import pyplot as plt
 from openml import flows as openml_flows
 from openml import runs as openml_runs

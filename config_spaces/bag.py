@@ -1,10 +1,25 @@
 import numpy as np
 from hyperopt import hp
 from hyperopt.pyll import scope
-from imbens.ensemble.under_sampling import BalancedRandomForestClassifier
+from imblearn.ensemble import BalancedBaggingClassifier, BalancedRandomForestClassifier
 from sklearn.ensemble import RandomForestClassifier
 
 from config_spaces import MLModelGenerator
+
+
+class BaggingEnsembleGenerator(MLModelGenerator):
+    n_estimators = hp.pchoice('bag.n_estimators', [(0.0625, 8), (0.175, 9), (0.525, 10), (0.175, 11), (0.0625, 12)])
+    bootstrap = hp.choice('bag.bootstrap', [True, False])
+    max_samples = hp.pchoice('bag.max_samples', [(0.05, 0.8), (0.15, 0.9), (0.8, 1.0)])
+    max_features = hp.pchoice('bag.max_features', [(0.05, 0.8), (0.15, 0.9), (0.8, 1.0)])
+    bootstrap_features = hp.choice('bag.bootstrap_features', [True, False])
+
+    @classmethod
+    def generate_algorithm_configuration_space(cls, model_class=None):
+        param_map = super().generate_algorithm_configuration_space()
+        param_map.update({'model_class': BalancedBaggingClassifier})
+
+        return param_map
 
 
 class RandomForestGenerator(MLModelGenerator):
@@ -17,7 +32,7 @@ class RandomForestGenerator(MLModelGenerator):
     class_weight = hp.choice('rf.class_weight', ['balanced', 'balanced_subsample', None])
 
     @classmethod
-    def generate_algorithm_configuration_space(cls):
+    def generate_algorithm_configuration_space(cls, model_class=None):
         param_map = super().generate_algorithm_configuration_space()
         param_map.update({'model_class': RandomForestClassifier})
 
@@ -26,7 +41,7 @@ class RandomForestGenerator(MLModelGenerator):
 
 class BRFGenerator(RandomForestGenerator):
     @classmethod
-    def generate_algorithm_configuration_space(cls):
+    def generate_algorithm_configuration_space(cls, model_class=None):
         param_map = super().generate_algorithm_configuration_space()
         param_map.update({'model_class': BalancedRandomForestClassifier})
 
