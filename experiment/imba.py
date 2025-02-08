@@ -17,7 +17,7 @@ from config_spaces.ensemble.boost import AdaReweightedGenerator
 from config_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
 from config_spaces.ensemble.bag import BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
-from .runner import ZenodoExperimentRunner
+from .runner import ZenodoExperimentRunner, AutoMLRunner
 
 import ray
 from ray.tune.search.hyperopt import HyperOptSearch
@@ -52,7 +52,7 @@ def ray_trainable(config):
 #         return {"loss": trial_result['loss']}
 
 
-class ImbaExperimentRunner(ZenodoExperimentRunner):
+class ImbaExperimentRunner(AutoMLRunner):
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
         hyper_parameters = hyper_parameters.copy()

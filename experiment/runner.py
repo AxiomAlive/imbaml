@@ -1,46 +1,48 @@
-import itertools
 import logging
-import multiprocessing
 import os
 import pprint
-import shutil
-import traceback
+import time
 from abc import ABC, abstractmethod
 from collections import Counter
-from datetime import datetime
-from typing import Tuple, Optional, Union, List, Callable, Any, TypeVar
+from typing import Union, Optional, List, Tuple
 
-import time
 import numpy as np
 import openml
 import pandas as pd
-import sklearn.base
-from imblearn.datasets import fetch_datasets
 from imblearn.metrics import geometric_mean_score
+from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, cohen_kappa_score
 from sklearn.preprocessing import LabelEncoder
+
+from experiment.benchmark import FittedModel, ZenodoExperimentRunner
+from utils.decorators import ExceptionWrapper
 from sklearn.model_selection import train_test_split as tts
 
-from sklearn.metrics import *
-
-
-from domain import Dataset
-from utils.decorators import ExceptionWrapper
-
 logger = logging.getLogger(__name__)
-FittedModel = TypeVar('FittedModel', bound=Any)
 
-class BenchmarkExperimentRunner(ABC):
-    def __init__(self, *args, **kwargs):
-        self._tasks: List[Dataset, ...] = []
-        self._id_counter = itertools.count(start=1)
+
+class AutoMLRunner(ABC):
+    def __init__(self):
+        self._benchmark_runner = ZenodoExperimentRunner()
+
         self._n_evals = 30
         self._fitted_model: FittedModel
 
         self._configure_environment()
 
-    @abstractmethod
-    def define_tasks(self, task_range: Optional[Tuple[int, ...]] = None):
-        raise NotImplementedError()
+    def get_benchmark_runner(self):
+        return self._benchmark_runner
+
+    def _configure_environment(self):
+        openml.config.set_root_cache_directory("./openml_cache")
+
+        np.random.seed(42)
+
+        os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
+        os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
+        os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
+
+        logger.info("Prepared env.")
+
 
     @abstractmethod
     def fit(
@@ -55,26 +57,19 @@ class BenchmarkExperimentRunner(ABC):
     def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
         raise NotImplementedError()
 
-    @abstractmethod
-    def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
-        raise NotImplementedError()
-
-    def make_imbalance(self):
-        raise NotImplementedError
+    # def _make_imbalance(self):
+    #     raise NotImplementedError
 
     def _log_val_loss_alongside_model_class(self, losses):
         for m, l in losses.items():
             logger.info(f"Validation loss: {float(l):.3f}")
             logger.info(pprint.pformat(f'Model class: {m}'))
 
-    def get_tasks(self):
-        return self._tasks
-
     @ExceptionWrapper.log_exception
     def run(self, n_evals: Optional[int] = None):
         if n_evals is not None:
             self._n_evals = n_evals
-        for task in self._tasks:
+        for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return
 
@@ -197,17 +192,6 @@ class BenchmarkExperimentRunner(ABC):
                     metric,
                     **compute_metric_score_kwargs)
 
-    def _configure_environment(self):
-        openml.config.set_root_cache_directory("./openml_cache")
-
-        np.random.seed(42)
-
-        os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
-        os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
-        os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
-
-        logger.info("Prepared env.")
-
     def preprocess_data(self, X: pd.DataFrame, y: pd.Series) -> Optional[Tuple[pd.DataFrame, pd.Series]]:
         X.dropna(inplace=True)
 
@@ -240,58 +224,3 @@ class BenchmarkExperimentRunner(ABC):
             random_state=42,
             test_size=0.2,
             stratify=y)
-
-
-class ZenodoExperimentRunner(BenchmarkExperimentRunner):
-    def __init__(self):
-        super().__init__()
-        self.__datasets = fetch_datasets(data_home='datasets/imbalanced', verbose=True)
-
-    def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
-        for i, (dataset_name, dataset_data) in enumerate(self.__datasets.items()):
-            # logger.info(i)
-            if i + 1 == task_id:
-                return Dataset(id=next(self._id_counter), name=dataset_name, X=dataset_data.get('data'), y=dataset_data.get('target'))
-            # logger.info(f'i {i}, dataset name {dataset}')
-
-    def define_tasks(self, task_range: Optional[Tuple[int, ...]] = None):
-        if task_range is None:
-            task_range = tuple(range(1, len(self.__datasets.keys())))
-            logger.info(task_range)
-        for i in task_range:
-            self._tasks.append(self.load_dataset(i))
-
-
-class OpenMLExperimentRunner(BenchmarkExperimentRunner):
-    def __init__(self):
-        super().__init__()
-
-    def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
-        try:
-            with multiprocessing.Pool(processes=1) as pool:
-                task = pool.apply_async(openml.tasks.get_task, [task_id]).get(timeout=1800)
-                dataset = pool.apply_async(task.get_dataset, []).get(timeout=1800)
-            X, y, categorical_indicator, dataset_feature_names = dataset.get_data(
-                target=dataset.default_target_attribute)
-
-        except multiprocessing.TimeoutError:
-            logger.error(f"Fetch from OpenML timed out. Dataset id={task_id} was not loaded.")
-            return None
-        except Exception as exc:
-            logger.error(pprint.pformat(traceback.format_exception(type(exc), exc, exc.__traceback__   )))
-            return None
-
-        return Dataset(id=next(self._id_counter), name=dataset.name, target_label=dataset.default_target_attribute, X=X, y=y)
-
-    def define_tasks(self, task_range: Tuple[int, ...] = None):
-        self._tasks = []
-        benchmark_suite = openml.study.get_suite(suite_id=271)
-
-        for i, task_id in enumerate(benchmark_suite.tasks):
-            # if iteration not in (5, 6, 7, 13, 14, 17, 61, 62, 69):
-            if task_range is not None and i not in task_range:
-                continue
-
-            self._tasks.append(self.load_dataset(task_id))
-
-

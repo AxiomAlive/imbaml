@@ -23,14 +23,14 @@ import torch
 import logging
 import pickle
 
-from experiment.runner import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from experiment.runner import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner, AutoMLRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.linear_model import LogisticRegression
 
 logger = logging.getLogger(__name__)
 
 
-class AGExperimentRunner(ZenodoExperimentRunner):
+class AGExperimentRunner(AutoMLRunner):
     def __init__(self, preset):
         super().__init__()
         self._preset = preset

@@ -9,7 +9,6 @@ from typing import Optional
 from setuptools import setup
 
 import numpy as np
-from experiment.runner import OpenMLExperimentRunner
 from pathlib import Path
 
 
@@ -71,7 +70,7 @@ class ExperimentMain:
         else:
             raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
 
-        runner.define_tasks(tasks)
+        runner.get_benchmark_runner().define_tasks(tasks)
 
         runner.run(trials)
 

@@ -20,6 +20,10 @@ run_experiment() {
     trials=50
   fi
 
+  if [[ "$*" == *"10"* ]]; then
+      trials=10
+    fi
+
   source env/bin/activate
 
   "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset" --trials="$trials"
