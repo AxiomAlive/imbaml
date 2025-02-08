@@ -1,40 +1,23 @@
 import logging
-import pprint
-import traceback
-from abc import abstractmethod, ABC
-from typing import Optional, Tuple, Union, Any, TypeVar
+from typing import Union
 
-import arff
-import openml
 import pandas    as pd
 import numpy as np
-from collections import Counter
 
-import sklearn.metrics
-from hyperopt import fmin, tpe, STATUS_OK, Trials, rand, hp, space_eval
-from functools import partial
+from hyperopt import STATUS_OK, hp
 
 from ray.tune import Tuner
 from ray.tune.search import ConcurrencyLimiter
 from sklearn.exceptions import NotFittedError
-from sklearn.model_selection import train_test_split as tts, cross_val_score, StratifiedKFold
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
-from imblearn.pipeline import Pipeline, make_pipeline
-from imblearn.datasets import fetch_datasets, make_imbalance
-from imbens.ensemble import AdaUBoostClassifier, AdaCostClassifier, AsymBoostClassifier, OverBoostClassifier, \
-    SMOTEBoostClassifier, OverBaggingClassifier, BalancedRandomForestClassifier
-from os import walk
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from imbens.ensemble import AdaUBoostClassifier, AdaCostClassifier, AsymBoostClassifier
 from sklearn.metrics import *
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
-from imblearn.over_sampling import RandomOverSampler
 
-from config_spaces.boost import AdaReweightedGenerator
-from config_spaces.bag import BaggingEnsembleGenerator
-from config_spaces.bag import BRFGenerator
+from config_spaces.ensemble.boost import AdaReweightedGenerator
+from config_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
+from config_spaces.ensemble.bag import BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
-from .runner import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from .runner import ZenodoExperimentRunner
 
 import ray
 from ray.tune.search.hyperopt import HyperOptSearch
@@ -99,8 +82,8 @@ class ImbaExperimentRunner(ZenodoExperimentRunner):
                 AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
                 AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
                 AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
-                BRFGenerator.generate_algorithm_configuration_space(),
-                BaggingEnsembleGenerator.generate_algorithm_configuration_space()
+                BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
+                BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space()
             ]
 
         algorithms_configuration = hp.choice("algorithm_configuration", model_classes)

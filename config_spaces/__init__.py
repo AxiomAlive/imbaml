@@ -1,4 +1,3 @@
-
 class MLModelGenerator:
     @classmethod
     def generate_algorithm_configuration_space(cls, model_class=None):

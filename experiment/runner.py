@@ -7,8 +7,10 @@ import shutil
 import traceback
 from abc import ABC, abstractmethod
 from collections import Counter
+from datetime import datetime
 from typing import Tuple, Optional, Union, List, Callable, Any, TypeVar
 
+import time
 import numpy as np
 import openml
 import pandas as pd
@@ -134,28 +136,66 @@ class BenchmarkExperimentRunner(ABC):
             # estimated_dataset_size_in_memory = y_train.memory_usage(deep=True) / (1024 ** 2)
             # logger.info(f"Dataset size: {estimated_dataset_size_in_memory}")
 
+            start_time = time.time()
             self.fit(X_train, y_train, task.target_label, task.name)
+            self.examine_quality('time_passed', start_time=start_time)
+
             y_predictions = self.predict(X_test)
-            self.examine_quality(y_test, y_predictions, positive_class_label)
+            self.examine_quality('f1', y_test, y_predictions, positive_class_label)
 
-    def examine_quality(self, y_test, y_pred, pos_label):
-        f1 = fbeta_score(y_test, y_pred, beta=1, pos_label=pos_label)
-        logger.info(f"F1: {f1:.3f}")
+    def _compute_metric_score(self, metric: str, *args, **kwargs):
+        y_test = kwargs.get("y_test")
+        y_pred = kwargs.get("y_pred")
+        pos_label = kwargs.get("pos_label")
+        start_time = kwargs.get("start_time")
 
-        balanced_accuracy = balanced_accuracy_score(y_test, y_pred)
-        logger.info(f"Balanced accuracy: {balanced_accuracy:.3f}")
+        if metric == 'f1':
+            f1 = fbeta_score(y_test, kwargs.get("y_pred"), beta=1, pos_label=pos_label)
+            logger.info(f"F1: {f1:.3f}")
+        elif metric == 'balanced_acc':
+            balanced_accuracy = balanced_accuracy_score(y_test, y_pred)
+            logger.info(f"Balanced accuracy: {balanced_accuracy:.3f}")
+        elif metric == 'recall':
+            recall = recall_score(y_test, y_pred, pos_label=pos_label)
+            logger.info(f"Recall: {recall:.3f}")
+        elif metric == 'precision':
+            precision = precision_score(y_test, y_pred, pos_label=pos_label)
+            logger.info(f"Precision: {precision:.3f}")
+        elif metric == 'g_mean':
+            g_mean = geometric_mean_score(y_test, y_pred, pos_label=pos_label)
+            logger.info(f"Geometric mean: {g_mean:.3f}")
+        elif metric == 'kappa':
+            kappa = cohen_kappa_score(y_test, y_pred)
+            logger.info(f"Kappa: {kappa:.3f}")
+        elif metric == 'time_passed':
+            time_passed = time.time() - start_time
+            logger.info(f"Time passed: {time_passed // 3600} hours, {time_passed // 60 % 60} minutes and {time_passed % 60} seconds.")
 
-        recall = recall_score(y_test, y_pred, pos_label=pos_label)
-        logger.info(f"Recall: {recall:.3f}")
+    def examine_quality(
+            self,
+            metrics: Union[str, List[str]],
+            y_test: Optional[Union[pd.DataFrame, np.ndarray]]=None,
+            y_pred: Optional[Union[pd.DataFrame, np.ndarray]]=None,
+            pos_label:Optional[int]=None,
+            start_time:Optional[float]=None):
 
-        precision = precision_score(y_test, y_pred, pos_label=pos_label)
-        logger.info(f"Precision: {precision:.3f}")
+        compute_metric_score_kwargs = {
+            'y_test': y_test,
+            'y_pred': y_pred,
+            'pos_label': pos_label,
+            'start_time': start_time
+        }
 
-        gmean = geometric_mean_score(y_test, y_pred, pos_label=pos_label)
-        logger.info(f"G-Mean: {gmean:.3f}")
-
-        kappa = cohen_kappa_score(y_test, y_pred)
-        logger.info(f"Kappa: {kappa:.3f}")
+        # TODO: add handling for 'all' as a value of metrics to avoid hard-coding all metric names.
+        if isinstance(metrics, str):
+            self._compute_metric_score(
+                metrics,
+                **compute_metric_score_kwargs)
+        elif isinstance(metrics, list):
+            for metric in metrics:
+                self._compute_metric_score(
+                    metric,
+                    **compute_metric_score_kwargs)
 
     def _configure_environment(self):
         openml.config.set_root_cache_directory("./openml_cache")

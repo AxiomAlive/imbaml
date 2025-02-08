@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from config_spaces import MLModelGenerator
 
 
-class BaggingEnsembleGenerator(MLModelGenerator):
+class BalancedBaggingClassifierGenerator(MLModelGenerator):
     n_estimators = hp.pchoice('bag.n_estimators', [(0.0625, 8), (0.175, 9), (0.525, 10), (0.175, 11), (0.0625, 12)])
     bootstrap = hp.choice('bag.bootstrap', [True, False])
     max_samples = hp.pchoice('bag.max_samples', [(0.05, 0.8), (0.15, 0.9), (0.8, 1.0)])
@@ -39,7 +39,7 @@ class RandomForestGenerator(MLModelGenerator):
         return param_map
 
 
-class BRFGenerator(RandomForestGenerator):
+class BalancedRandomForestGenerator(RandomForestGenerator):
     @classmethod
     def generate_algorithm_configuration_space(cls, model_class=None):
         param_map = super().generate_algorithm_configuration_space()
