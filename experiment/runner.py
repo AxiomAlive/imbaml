@@ -24,7 +24,7 @@ class AutoMLRunner(ABC):
     def __init__(self):
         self._benchmark_runner = ZenodoExperimentRunner()
 
-        self._n_evals = 30
+        self._n_evals = 50
         self._fitted_model: FittedModel
 
         self._configure_environment()
@@ -69,6 +69,7 @@ class AutoMLRunner(ABC):
     def run(self, n_evals: Optional[int] = None):
         if n_evals is not None:
             self._n_evals = n_evals
+        logger.info(f"Number of optimization search trials: {self._n_evals}.")
         for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return

@@ -16,8 +16,8 @@ run_experiment() {
     automl="ag"
   fi
 
-  if [[ "$*" == *"50"* ]]; then
-    trials=50
+  if [[ "$*" == *"100"* ]]; then
+    trials=100
   fi
 
   if [[ "$*" == *"10"* ]]; then
