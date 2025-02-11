@@ -4,10 +4,10 @@ import pprint
 import time
 from abc import ABC, abstractmethod
 from collections import Counter
+from pathlib import Path
 from typing import Union, Optional, List, Tuple
 
 import numpy as np
-import openml
 import pandas as pd
 from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, cohen_kappa_score
@@ -33,13 +33,7 @@ class AutoMLRunner(ABC):
         return self._benchmark_runner
 
     def _configure_environment(self):
-        openml.config.set_root_cache_directory("./openml_cache")
-
         np.random.seed(42)
-
-        os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
-        os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
-        os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
 
         logger.info("Prepared env.")
 
@@ -69,7 +63,7 @@ class AutoMLRunner(ABC):
     def run(self, n_evals: Optional[int] = None):
         if n_evals is not None:
             self._n_evals = n_evals
-        logger.info(f"Number of optimization search trials: {self._n_evals}.")
+
         for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return

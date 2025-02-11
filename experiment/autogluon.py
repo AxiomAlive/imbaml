@@ -7,7 +7,6 @@ from os import walk
 
 import arff
 import numpy as np
-import openml
 import pandas as pd
 import sklearn.metrics
 from autogluon.tabular import TabularDataset, TabularPredictor
@@ -23,7 +22,8 @@ import torch
 import logging
 import pickle
 
-from experiment.runner import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner, AutoMLRunner
+from experiment.benchmark import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from experiment.runner import AutoMLRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.linear_model import LogisticRegression
 
@@ -72,14 +72,12 @@ class AGExperimentRunner(AutoMLRunner):
             verbosity=2) \
             .fit(
             autogluon_dataset_train,
-            presets=[self._preset, 'optimize_for_deployment'],
-            num_stack_levels=2
+            presets=[self._preset],
         )
 
         logger.info(f"Training on dataset {dataset_name} finished.")
 
         val_scores = autogluon_predictor.leaderboard().get('score_val')
-        logger.info(val_scores)
         if len(val_scores) == 0:
             logger.error("No best model found.")
             return

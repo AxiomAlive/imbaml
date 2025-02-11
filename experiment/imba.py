@@ -77,6 +77,7 @@ class ImbaExperimentRunner(AutoMLRunner):
             target_label: str,
             dataset_name: str
             ):
+        logger.info(f"Number of optimization search trials: {self._n_evals}.")
 
         model_classes = [
                 AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),

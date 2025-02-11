@@ -57,22 +57,23 @@ class ExperimentMain:
             raise ValueError("Invalid --out option. Options available: ['file', 'console'].")
 
         if automl == 'ag':
-            if autogluon_preset not in ['medium_quality', 'good_quality']:
-                raise ValueError("Invalid --preset option. Options available: ['medium_quality', 'good_quality'].")
+            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
+                raise ValueError("Invalid --preset option. Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].")
 
             from experiment.autogluon import AGExperimentRunner
 
-            runner = AGExperimentRunner(autogluon_preset)
+            automl_runner = AGExperimentRunner(autogluon_preset)
         elif automl == 'imba':
             from experiment.imba import ImbaExperimentRunner
 
-            runner = ImbaExperimentRunner()
+            automl_runner = ImbaExperimentRunner()
         else:
             raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
 
-        runner.get_benchmark_runner().define_tasks(tasks)
+        benchmark_runner = automl_runner.get_benchmark_runner()
+        benchmark_runner.define_tasks(tasks)
 
-        runner.run(trials)
+        automl_runner.run(trials)
 
 
 

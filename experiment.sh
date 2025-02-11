@@ -24,7 +24,7 @@ run_experiment() {
       trials=10
     fi
 
-  source env/bin/activate
+  source devenv/bin/activate
 
   "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset" --trials="$trials"
 }
