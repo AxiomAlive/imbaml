@@ -4,7 +4,6 @@ run_experiment() {
   declare out='file'
   declare automl='imba'
   declare preset='good_quality'
-  declare trials=0
   #TODO: add tasks argument.
 
   # TODO: check for flags for comparison.
@@ -16,17 +15,9 @@ run_experiment() {
     automl="ag"
   fi
 
-  if [[ "$*" == *"100"* ]]; then
-    trials=100
-  fi
+  source env/bin/activate
 
-  if [[ "$*" == *"10"* ]]; then
-      trials=10
-    fi
-
-  source devenv/bin/activate
-
-  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset" --trials="$trials"
+  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset"
 }
 
 

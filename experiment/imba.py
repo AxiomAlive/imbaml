@@ -26,14 +26,15 @@ from ray.train import RunConfig
 
 logger = logging.getLogger(__name__)
 
-
-def ray_trainable(config):
-    trial_result = ImbaExperimentRunner.compute_metric_score(
-        config['algorithm_configuration'],
-        config['metric'],
-        config['X'],
-        config['y'])
-    ray.train.report(trial_result)
+class RayTuner:
+    @staticmethod
+    def trainable(config):
+        trial_result = ImbaExperimentRunner.compute_metric_score(
+            config['algorithm_configuration'],
+            config['metric'],
+            config['X'],
+            config['y'])
+        ray.train.report(trial_result)
 
 
 # class RayTrainable(ray.tune.Trainable):
@@ -63,7 +64,7 @@ class ImbaExperimentRunner(AutoMLRunner):
             estimator=clf,
             X=X,
             y=y,
-            cv=StratifiedKFold(n_splits=5),
+            cv=StratifiedKFold(n_splits=8),
             scoring=make_scorer(metric, pos_label=1),
             error_score='raise').mean()
 
@@ -105,7 +106,7 @@ class ImbaExperimentRunner(AutoMLRunner):
             batch=True)
 
         tuner = ray.tune.Tuner(
-            ray_trainable,
+            RayTuner.trainable,
             tune_config=ray.tune.TuneConfig(
                 metric='loss',
                 mode='min',

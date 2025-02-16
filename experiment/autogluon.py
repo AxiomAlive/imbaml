@@ -34,6 +34,14 @@ class AGExperimentRunner(AutoMLRunner):
     def __init__(self, preset):
         super().__init__()
         self._preset = preset
+
+    def get_preset(self):
+        return self._preset
+
+    def set_preset(self, preset):
+        if preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
+            raise ValueError("Invalid value of parameter preset. Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].")
+        self._preset = preset
     # check how to apply decorators for abstract class inheritance case.
     @ExceptionWrapper.log_exception
     def predict(self, X_test):

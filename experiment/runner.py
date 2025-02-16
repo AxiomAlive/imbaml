@@ -9,6 +9,7 @@ from typing import Union, Optional, List, Tuple
 
 import numpy as np
 import pandas as pd
+from imblearn.datasets import make_imbalance
 from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, cohen_kappa_score
 from sklearn.preprocessing import LabelEncoder
@@ -24,7 +25,7 @@ class AutoMLRunner(ABC):
     def __init__(self):
         self._benchmark_runner = ZenodoExperimentRunner()
 
-        self._n_evals = 50
+        self._n_evals = 70
         self._fitted_model: FittedModel
 
         self._configure_environment()
@@ -51,8 +52,30 @@ class AutoMLRunner(ABC):
     def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
         raise NotImplementedError()
 
-    # def _make_imbalance(self):
-    #     raise NotImplementedError
+    def _make_imbalance(self, X_train, y_train, class_belongings, pos_label) -> Tuple[Union[pd.DataFrame, np.ndaray], Union[pd.DataFrame, np.ndaray]]:
+        is_dataset_initially_imbalanced = True
+        number_of_positives = class_belongings.get(pos_label)
+
+        proportion_of_positives = number_of_positives / len(y_train)
+
+        # For extreme case - 0.01, for moderate - 0.2, for mild - 0.4.
+        if proportion_of_positives > 0.01:
+            coefficient = 0.01
+            updated_number_of_positives = int(coefficient * len(y_train))
+            if len(str(updated_number_of_positives)) < 2:
+                logger.warning(f"Number of positive class instances is too low.")
+            else:
+                class_belongings[pos_label] = updated_number_of_positives
+                is_dataset_initially_imbalanced = False
+
+        if not is_dataset_initially_imbalanced:
+            X_train, y_train = make_imbalance(
+                X_train,
+                y_train,
+                sampling_strategy=class_belongings)
+            logger.info("Imbalancing applied.")
+
+        return X_train, y_train
 
     def _log_val_loss_alongside_model_class(self, losses):
         for m, l in losses.items():
@@ -67,6 +90,8 @@ class AutoMLRunner(ABC):
         for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return
+            if task.id in [9, 23, 26]:
+                self._n_evals //= 2
 
             if isinstance(task.X, np.ndarray):
                 X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(task.X, task.y)
@@ -91,8 +116,6 @@ class AutoMLRunner(ABC):
                 logger.info("Multiclass problems are not currently supported.")
                 return
 
-            # is_dataset_initially_imbalanced = True
-
             iterator_of_class_belongings = iter(sorted(class_belongings))
             *_, positive_class_label = iterator_of_class_belongings
             number_of_positives = class_belongings.get(positive_class_label, None)
@@ -101,24 +124,7 @@ class AutoMLRunner(ABC):
                 logger.error("Unknown positive class label.")
                 return
 
-            proportion_of_positives = number_of_positives / len(y_train)
-
-            # For extreme case - 0.01, for moderate - 0.2, for mild - 0.4.
-            # if proportion_of_positives > 0.01:
-            #     coefficient = 0.01
-            #     updated_number_of_positives = int(coefficient * len(y_train))
-            #     if len(str(updated_number_of_positives)) < 2:
-            #         logger.info(f"Number of positive class instances is too low.")
-            #         return
-            #     class_belongings[positive_class_label] = updated_number_of_positives
-            #     is_dataset_initially_imbalanced = False
-            #
-            # if not is_dataset_initially_imbalanced:
-            #     X_train, y_train = make_imbalance(
-            #         X_train,
-            #         y_train,
-            #         sampling_strategy=class_belongings)
-            #     logger.info("Imbalancing applied.")
+            # X_train, y_train = self._make_imbalance(X_train, y_train, class_belongings, positive_class_label)
 
             number_of_train_instances_by_class = Counter(y_train)
             logger.info(number_of_train_instances_by_class)
