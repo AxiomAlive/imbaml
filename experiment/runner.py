@@ -52,7 +52,7 @@ class AutoMLRunner(ABC):
     def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
         raise NotImplementedError()
 
-    def _make_imbalance(self, X_train, y_train, class_belongings, pos_label) -> Tuple[Union[pd.DataFrame, np.ndaray], Union[pd.DataFrame, np.ndaray]]:
+    def _make_imbalance(self, X_train, y_train, class_belongings, pos_label) -> Tuple[Union[pd.DataFrame, np.ndarray], Union[pd.DataFrame, np.ndarray]]:
         is_dataset_initially_imbalanced = True
         number_of_positives = class_belongings.get(pos_label)
 
