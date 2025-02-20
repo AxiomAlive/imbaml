@@ -37,6 +37,8 @@ class RayTuner:
         ray.train.report(trial_result)
 
 
+#TODO: use ray.tune.Trainable directly
+#
 # class RayTrainable(ray.tune.Trainable):
 #     def setup(self, config):
 #         self.algorithm_configuration = config["algorithm_configuration"]

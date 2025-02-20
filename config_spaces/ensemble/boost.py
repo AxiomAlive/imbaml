@@ -51,7 +51,7 @@ class AdaReweightedGenerator(AdaGenerator):
 
 
 class RUSBoostGenerator(AdaGenerator):
-    replacement = hp.choice("rus_boost.replacement", [True, False])
+    replacement = False
 
     @classmethod
     def generate_algorithm_configuration_space(cls, model_class=None):
