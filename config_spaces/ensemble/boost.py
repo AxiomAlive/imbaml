@@ -9,7 +9,7 @@ import timeit
 from hyperopt.pyll import scope
 from imbens.ensemble import AdaCostClassifier, AsymBoostClassifier
 from imbens.ensemble.reweighting import AdaUBoostClassifier
-from imblearn.ensemble import BalancedRandomForestClassifier
+from imblearn.ensemble import BalancedRandomForestClassifier, RUSBoostClassifier
 from matplotlib import pyplot as plt
 from openml import flows as openml_flows
 from openml import runs as openml_runs
@@ -46,5 +46,16 @@ class AdaReweightedGenerator(AdaGenerator):
             raise ValueError("Model class must be specified for AdaReweightedGenerator.")
         param_map = super().generate_algorithm_configuration_space()
         param_map.update({'model_class': model_class})
+
+        return param_map
+
+
+class RUSBoostGenerator(AdaGenerator):
+    replacement = hp.choice("rus_boost.replacement", [True, False])
+
+    @classmethod
+    def generate_algorithm_configuration_space(cls, model_class=None):
+        param_map = super().generate_algorithm_configuration_space()
+        param_map.update({'model_class': RUSBoostClassifier})
 
         return param_map
