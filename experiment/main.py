@@ -67,6 +67,10 @@ class ExperimentMain:
             from experiment.imba import ImbaExperimentRunner
 
             automl_runner = ImbaExperimentRunner()
+        elif automl == 'flaml':
+            from experiment.flaml_automl import FLAMLExperimentRunner
+
+            automl_runner = FLAMLExperimentRunner()
         else:
             raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
 

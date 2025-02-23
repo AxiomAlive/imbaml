@@ -118,6 +118,8 @@ class AutoMLRunner(ABC):
 
             iterator_of_class_belongings = iter(sorted(class_belongings))
             *_, positive_class_label = iterator_of_class_belongings
+            logger.info(f"Pos class label: {positive_class_label}")
+
             number_of_positives = class_belongings.get(positive_class_label, None)
 
             if number_of_positives is None:

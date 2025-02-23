@@ -15,7 +15,15 @@ run_experiment() {
     automl="ag"
   fi
 
-  source env/bin/activate
+  if [[ "$*" == *"flaml"* ]]; then
+    automl="flaml"
+  fi
+
+  if [[ "$automl" == "imba" ]]; then
+    source env/bin/activate
+  else
+    source devenv/bin/activate
+  fi
 
   "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset"
 }
