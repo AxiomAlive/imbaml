@@ -11,7 +11,7 @@ from flaml import AutoML
 
 class FLAMLExperimentRunner(AutoMLRunner):
     def fit(self, X_train: Union[np.ndarray, pd.DataFrame], y_train: Union[np.ndarray, pd.Series], target_label: str,
-            dataset_name: str):
+            dataset_name: str) -> None:
         flaml = AutoML()
         flaml.fit(X_train, y_train, task='classification', time_budget=-1, metric='f1')
 
@@ -21,9 +21,3 @@ class FLAMLExperimentRunner(AutoMLRunner):
 
         self._fitted_model = flaml
 
-    def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
-        if self._fitted_model is None:
-            raise NotFittedError()
-
-        predictions = self._fitted_model.predict(X_test)
-        return predictions

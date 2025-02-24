@@ -99,14 +99,17 @@ class ImbaExperimentRunner(AutoMLRunner):
             'algorithm_configuration': algorithms_configuration
         }
 
-        # HyperOptSearch(points_to_evaluate = promising initial points)
-        search_algo = ConcurrencyLimiter(
-            HyperOptSearch(
-                space=ray_configuration,
-                metric='loss',
-                mode='min'),
-            max_concurrent=5,
-            batch=True)
+        # search_algo = ConcurrencyLimiter(
+        #     HyperOptSearch(
+        #         space=ray_configuration,
+        #         metric='loss',
+        #         mode='min'),
+        #     max_concurrent=5,
+        #     batch=True)
+        search_algo = HyperOptSearch(
+            space=ray_configuration,
+            metric='loss',
+            mode='min')
 
         tuner = ray.tune.Tuner(
             RayTuner.trainable,

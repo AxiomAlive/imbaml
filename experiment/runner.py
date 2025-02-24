@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from imblearn.datasets import make_imbalance
 from imblearn.metrics import geometric_mean_score
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, cohen_kappa_score
 from sklearn.preprocessing import LabelEncoder
 
@@ -24,9 +25,8 @@ logger = logging.getLogger(__name__)
 class AutoMLRunner(ABC):
     def __init__(self):
         self._benchmark_runner = ZenodoExperimentRunner()
-
         self._n_evals = 70
-        self._fitted_model: FittedModel
+        self._fitted_model: FittedModel = None
 
         self._configure_environment()
 
@@ -48,9 +48,12 @@ class AutoMLRunner(ABC):
             dataset_name: str):
         raise NotImplementedError()
 
-    @abstractmethod
     def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
-        raise NotImplementedError()
+        if self._fitted_model is None:
+            raise NotFittedError()
+
+        predictions = self._fitted_model.predict(X_test)
+        return predictions
 
     def _make_imbalance(self, X_train, y_train, class_belongings, pos_label) -> Tuple[Union[pd.DataFrame, np.ndarray], Union[pd.DataFrame, np.ndarray]]:
         is_dataset_initially_imbalanced = True
