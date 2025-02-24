@@ -4,7 +4,7 @@ from typing import Union
 import pandas    as pd
 import numpy as np
 
-from hyperopt import STATUS_OK, hp
+from hyperopt import STATUS_OK, hp, atpe
 
 from ray.tune import Tuner
 from ray.tune.search import ConcurrencyLimiter
@@ -110,6 +110,7 @@ class ImbaExperimentRunner(AutoMLRunner):
             space=ray_configuration,
             metric='loss',
             mode='min')
+        search_algo.algo = atpe.suggest
 
         tuner = ray.tune.Tuner(
             RayTuner.trainable,
