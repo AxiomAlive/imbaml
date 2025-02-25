@@ -8,10 +8,10 @@ from config_spaces import MLModelGenerator
 
 
 class BalancedBaggingClassifierGenerator(MLModelGenerator):
-    n_estimators = hp.pchoice('bag.n_estimators', [(0.0625, 8), (0.175, 9), (0.525, 10), (0.175, 11), (0.0625, 12)])
+    n_estimators = hp.choice('bag.n_estimators', [8, 10])
     bootstrap = hp.choice('bag.bootstrap', [True, False])
-    max_samples = hp.pchoice('bag.max_samples', [(0.05, 0.8), (0.15, 0.9), (0.8, 1.0)])
-    max_features = hp.pchoice('bag.max_features', [(0.05, 0.8), (0.15, 0.9), (0.8, 1.0)])
+    max_samples = 1.0
+    max_features = 1.0
     bootstrap_features = hp.choice('bag.bootstrap_features', [True, False])
 
     @classmethod
@@ -27,7 +27,7 @@ class RandomForestGenerator(MLModelGenerator):
     bootstrap = hp.choice('rf.bootstrap', [True, False])
     criterion = hp.choice('rf.criterion', ['gini', 'entropy'])
     max_features = hp.uniform('rf.max_features', 0.05, 1)
-    min_samples_split = hp.pchoice('rf.min_samples_split', [(0.95, 2), (0.05, 3)])
+    min_samples_split = 2
     min_samples_leaf = scope.int(hp.loguniform('rf.min_samples_leaf', np.log(1.5), np.log(50.5)))
     class_weight = hp.choice('rf.class_weight', ['balanced', 'balanced_subsample', None])
 

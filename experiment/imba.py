@@ -83,13 +83,13 @@ class ImbaExperimentRunner(AutoMLRunner):
         logger.info(f"Number of optimization search trials: {self._n_evals}.")
 
         model_classes = [
-                AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
-                AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
-                AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
-                BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
-                BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
-                RUSBoostGenerator.generate_algorithm_configuration_space()
-            ]
+            AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
+            AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
+            AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
+            BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
+            BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
+            RUSBoostGenerator.generate_algorithm_configuration_space()
+        ]
 
         algorithms_configuration = hp.choice("algorithm_configuration", model_classes)
         ray_configuration = {
