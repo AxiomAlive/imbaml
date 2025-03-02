@@ -31,7 +31,7 @@ from sklearn.linear_model import LogisticRegression
 logger = logging.getLogger(__name__)
 
 
-class AGExperimentRunner(AutoMLRunner):
+class AutoGluonExperimentRunner(AutoMLRunner):
     def __init__(self, preset):
         super().__init__()
         self._preset = preset

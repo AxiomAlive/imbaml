@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 
 import numpy as np
@@ -9,9 +10,16 @@ from experiment.runner import AutoMLRunner
 from flaml import AutoML
 
 
+logger = logging.getLogger(__name__)
+
+
 class FLAMLExperimentRunner(AutoMLRunner):
-    def fit(self, X_train: Union[np.ndarray, pd.DataFrame], y_train: Union[np.ndarray, pd.Series], target_label: str,
-            dataset_name: str):
+    def fit(self,
+            X_train: Union[np.ndarray, pd.DataFrame],
+            y_train: Union[np.ndarray, pd.Series],
+            target_label: str,
+            dataset_name: str,
+            n_evals: int) -> None:
         flaml = AutoML()
         flaml.fit(X_train, y_train, task='classification', time_budget=-1, metric='f1')
 
@@ -20,10 +28,3 @@ class FLAMLExperimentRunner(AutoMLRunner):
         self._log_val_loss_alongside_model_class({best_model: best_loss})
 
         self._fitted_model = flaml
-
-    def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
-        if self._fitted_model is None:
-            raise NotFittedError()
-
-        predictions = self._fitted_model.predict(X_test)
-        return predictions
