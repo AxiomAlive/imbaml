@@ -32,10 +32,30 @@ class ExperimentMain:
         if trials is not None and trials == 0:
             trials = None
 
+        if automl == 'ag':
+            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
+                raise ValueError("Invalid --preset option. Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].")
+
+            from experiment.autogluon import AGExperimentRunner
+
+            automl_runner = AGExperimentRunner(autogluon_preset)
+        elif automl == 'imba':
+            from experiment.imba import ImbaExperimentRunner
+
+            automl_runner = ImbaExperimentRunner()
+        elif automl == 'flaml':
+            from experiment.flaml_automl import FLAMLExperimentRunner
+
+            automl_runner = FLAMLExperimentRunner()
+        else:
+            raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
+
         if logging_output == 'file':
             if automl == 'ag':
                 log_file_name = 'logs/AG/'
-            else:
+            elif automl == 'flaml':
+                log_file_name = 'logs/FLAML/'
+            elif automl == 'imba':
                 log_file_name = 'logs/Imba/'
 
             Path(log_file_name).mkdir(parents=True, exist_ok=True)
@@ -55,24 +75,6 @@ class ExperimentMain:
             )
         else:
             raise ValueError("Invalid --out option. Options available: ['file', 'console'].")
-
-        if automl == 'ag':
-            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
-                raise ValueError("Invalid --preset option. Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].")
-
-            from experiment.autogluon import AGExperimentRunner
-
-            automl_runner = AGExperimentRunner(autogluon_preset)
-        elif automl == 'imba':
-            from experiment.imba import ImbaExperimentRunner
-
-            automl_runner = ImbaExperimentRunner()
-        elif automl == 'flaml':
-            from experiment.flaml_automl import FLAMLExperimentRunner
-
-            automl_runner = FLAMLExperimentRunner()
-        else:
-            raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
 
         benchmark_runner = automl_runner.get_benchmark_runner()
         benchmark_runner.define_tasks(tasks)

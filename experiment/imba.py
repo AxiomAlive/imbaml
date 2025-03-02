@@ -13,7 +13,7 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 from imbens.ensemble import AdaUBoostClassifier, AdaCostClassifier, AsymBoostClassifier
 from sklearn.metrics import *
 
-from config_spaces.ensemble.boost import AdaReweightedGenerator, RUSBoostGenerator, EasyEnsembleGenerator
+from config_spaces.ensemble.boost import AdaReweightedGenerator
 from config_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
 from config_spaces.ensemble.bag import BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
