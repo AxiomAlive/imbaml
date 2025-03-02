@@ -25,6 +25,7 @@ from config_spaces import MLModelGenerator
 
 logger = logging.getLogger(__name__)
 
+
 class AdaGenerator(MLModelGenerator):
     n_estimators = scope.int(hp.loguniform('ada.n_estimators', np.log(10.5), np.log(500.5)))
     learning_rate = hp.lognormal('ada.learning_rate', np.log(0.01), np.log(20.0))

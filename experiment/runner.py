@@ -5,7 +5,7 @@ import time
 from abc import ABC, abstractmethod
 from collections import Counter
 from pathlib import Path
-from typing import Union, Optional, List, Tuple
+from typing import Union, Optional, List, Tuple, final
 
 import numpy as np
 import pandas as pd
@@ -25,7 +25,7 @@ class AutoMLRunner(ABC):
     def __init__(self):
         self._benchmark_runner = ZenodoExperimentRunner()
 
-        self._n_evals = 70
+        self.__n_evals = 70
         self._fitted_model: FittedModel
 
         self._configure_environment()
@@ -45,7 +45,8 @@ class AutoMLRunner(ABC):
             X_train: Union[np.ndarray, pd.DataFrame],
             y_train: Union[np.ndarray, pd.Series],
             target_label: str,
-            dataset_name: str):
+            dataset_name: str,
+            n_evals: int):
         raise NotImplementedError()
 
     @abstractmethod
@@ -77,6 +78,7 @@ class AutoMLRunner(ABC):
 
         return X_train, y_train
 
+    @final
     def _log_val_loss_alongside_model_class(self, losses):
         for m, l in losses.items():
             logger.info(f"Validation loss: {float(l):.3f}")
@@ -85,13 +87,15 @@ class AutoMLRunner(ABC):
     @ExceptionWrapper.log_exception
     def run(self, n_evals: Optional[int] = None):
         if n_evals is not None:
-            self._n_evals = n_evals
+            self.__n_evals = n_evals
 
         for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return
+
+            n_evals = self.__n_evals
             if task.id in [9, 23, 26]:
-                self._n_evals //= 2
+                n_evals //= 2
 
             if isinstance(task.X, np.ndarray):
                 X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(task.X, task.y)
@@ -107,7 +111,7 @@ class AutoMLRunner(ABC):
                 raise TypeError(f"pd.DataFrame or np.ndarray expected. Got: {type(task.X)}")
 
             logger.info(f"{task.id}...Loaded dataset name: {task.name}.")
-            logger.info(f'N: {X_train.shape[0]}. M: {X_train.shape[1]}')
+            logger.info(f'Rows: {X_train.shape[0]}. Columns: {X_train.shape[1]}')
 
             class_belongings = Counter(y_train)
             logger.info(class_belongings)
@@ -135,7 +139,7 @@ class AutoMLRunner(ABC):
             # logger.info(f"Dataset size: {estimated_dataset_size_in_memory}")
 
             start_time = time.time()
-            self.fit(X_train, y_train, task.target_label, task.name)
+            self.fit(X_train, y_train, task.target_label, task.name, n_evals)
             self.examine_quality('time_passed', start_time=start_time)
 
             y_predictions = self.predict(X_test)

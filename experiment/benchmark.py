@@ -107,7 +107,6 @@ class OpenMLExperimentRunner(BenchmarkExperimentRunner):
         benchmark_suite = openml.study.get_suite(suite_id=271)
 
         for i, task_id in enumerate(benchmark_suite.tasks):
-            # if iteration not in (5, 6, 7, 13, 14, 17, 61, 62, 69):
             if task_range is not None and i not in task_range:
                 continue
 

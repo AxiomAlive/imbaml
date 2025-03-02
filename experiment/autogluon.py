@@ -4,6 +4,7 @@ import os
 import pprint
 import traceback
 from os import walk
+from typing import Union
 
 import arff
 import numpy as np
@@ -42,7 +43,8 @@ class AGExperimentRunner(AutoMLRunner):
         if preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
             raise ValueError("Invalid value of parameter preset. Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].")
         self._preset = preset
-    # check how to apply decorators for abstract class inheritance case.
+
+    # TODO: check how to apply decorators for abstract class inheritance case.
     @ExceptionWrapper.log_exception
     def predict(self, X_test):
         if self._fitted_model is None:
@@ -54,12 +56,14 @@ class AGExperimentRunner(AutoMLRunner):
         return predictions
 
     @ExceptionWrapper.log_exception
-    def fit(self,
-            X_train,
-            y_train,
-            target_label,
-            dataset_name
-            ):
+    def fit(
+        self,
+        X_train: Union[np.ndarray, pd.DataFrame],
+        y_train: Union[np.ndarray, pd.Series],
+        target_label: str,
+        dataset_name: str,
+        n_evals: int
+    ) -> None:
         if target_label is None and isinstance(X_train, np.ndarray):
             dataset_train = pd.DataFrame(data=np.column_stack([X_train, y_train]))
             autogluon_dataset_train = pd.DataFrame(dataset_train)
