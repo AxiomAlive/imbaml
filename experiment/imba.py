@@ -56,6 +56,9 @@ class RayTuner:
 
 
 class ImbaExperimentRunner(AutoMLRunner):
+    def __init__(self, metric):
+        super().__init__(metric)
+
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
         hyper_parameters = hyper_parameters.copy()
@@ -67,7 +70,7 @@ class ImbaExperimentRunner(AutoMLRunner):
             X=X,
             y=y,
             cv=StratifiedKFold(n_splits=8),
-            scoring=make_scorer(metric, pos_label=1),
+            scoring=make_scorer(metric),
             error_score='raise').mean()
 
         return {'loss': -loss_value, 'status': STATUS_OK}
@@ -92,10 +95,15 @@ class ImbaExperimentRunner(AutoMLRunner):
         ]
 
         algorithms_configuration = hp.choice("algorithm_configuration", model_classes)
+
+        if self._metric == 'f1':
+            metric = f1_score
+        elif self._metric == 'balanced_acc':
+            metric = balanced_accuracy_score
         ray_configuration = {
             'X': X_train,
             'y': y_train,
-            'metric': f1_score,
+            'metric': metric,
             'algorithm_configuration': algorithms_configuration
         }
 

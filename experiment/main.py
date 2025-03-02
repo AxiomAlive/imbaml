@@ -21,6 +21,7 @@ class ExperimentMain:
         parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
         parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
         parser.add_argument('--tasks', action='store', dest='tasks', type=tuple, nargs='*', default=None)
+        parser.add_argument('--metric', action='store', dest='metric', default='f1')
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
@@ -28,9 +29,13 @@ class ExperimentMain:
         autogluon_preset = getattr(args, 'preset')
         trials = getattr(args, 'trials')
         tasks = getattr(args, 'tasks')
+        metric_name = getattr(args, 'metric')
 
         if trials is not None and trials == 0:
             trials = None
+
+        if metric_name not in ['f1', 'balanced_acc']:
+            raise ValueError("Invalid --metric option. Options available: ['f1', 'balanced_acc'].")
 
         if automl == 'ag':
             if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
@@ -38,25 +43,25 @@ class ExperimentMain:
 
             from experiment.autogluon import AutoGluonExperimentRunner
 
-            automl_runner = AutoGluonExperimentRunner(autogluon_preset)
+            automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metric=metric_name)
         elif automl == 'imba':
             from experiment.imba import ImbaExperimentRunner
 
-            automl_runner = ImbaExperimentRunner()
+            automl_runner = ImbaExperimentRunner(metric_name)
         elif automl == 'flaml':
             from experiment.flaml_automl import FLAMLExperimentRunner
 
-            automl_runner = FLAMLExperimentRunner()
+            automl_runner = FLAMLExperimentRunner(metric_name)
         else:
             raise ValueError("Invalid --automl option. Options available: ['imba', 'ag'].")
 
         if logging_output == 'file':
-            if automl == 'ag':
+            if automl == 'imba':
+                log_file_name = 'logs/Imba/'
+            elif automl == 'ag':
                 log_file_name = 'logs/AG/'
             elif automl == 'flaml':
                 log_file_name = 'logs/FLAML/'
-            elif automl == 'imba':
-                log_file_name = 'logs/Imba/'
 
             Path(log_file_name).mkdir(parents=True, exist_ok=True)
             log_file_name += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'

@@ -4,6 +4,7 @@ run_experiment() {
   declare out='file'
   declare automl='imba'
   declare preset='good_quality'
+  declare metric='f1'
   #TODO: add tasks argument.
 
   # TODO: check for flags for comparison.
@@ -19,13 +20,17 @@ run_experiment() {
     automl="flaml"
   fi
 
+  if [[ "$*" == *"acc"* ]]; then
+      metric="balanced_acc"
+    fi
+
   if [[ "$automl" == "imba" ]]; then
     source env/bin/activate
   else
     source devenv/bin/activate
   fi
 
-  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset"
+  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset" --metric="$metric"
 }
 
 

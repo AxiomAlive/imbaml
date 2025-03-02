@@ -12,7 +12,8 @@ import pandas as pd
 from imblearn.datasets import make_imbalance
 from imblearn.metrics import geometric_mean_score
 from sklearn.exceptions import NotFittedError
-from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, cohen_kappa_score
+from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, cohen_kappa_score, \
+    precision_recall_curve, auc
 from sklearn.preprocessing import LabelEncoder
 
 from experiment.benchmark import FittedModel, ZenodoExperimentRunner
@@ -23,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class AutoMLRunner(ABC):
-    def __init__(self):
+    def __init__(self, metric):
+        self._metric = metric
         self._benchmark_runner = ZenodoExperimentRunner()
 
         self.__n_evals = 70
@@ -147,7 +149,7 @@ class AutoMLRunner(ABC):
             self.examine_quality('time_passed', start_time=start_time)
 
             y_predictions = self.predict(X_test)
-            self.examine_quality('f1', y_test, y_predictions, positive_class_label)
+            self.examine_quality(self._metric, y_test, y_predictions, positive_class_label)
 
     def _compute_metric_score(self, metric: str, *args, **kwargs):
         y_test = kwargs.get("y_test")
@@ -161,15 +163,17 @@ class AutoMLRunner(ABC):
         elif metric == 'balanced_acc':
             balanced_accuracy = balanced_accuracy_score(y_test, y_pred)
             logger.info(f"Balanced accuracy: {balanced_accuracy:.3f}")
+        elif metric == 'auc_pr':
+            pr_curve = precision_recall_curve(y_test, y_pred, pos_label=pos_label)
+
+            auc_pr = auc(pr_curve)
+            logger.info(f"AUC-PR: {auc_pr:.3f}")
         elif metric == 'recall':
             recall = recall_score(y_test, y_pred, pos_label=pos_label)
             logger.info(f"Recall: {recall:.3f}")
         elif metric == 'precision':
             precision = precision_score(y_test, y_pred, pos_label=pos_label)
             logger.info(f"Precision: {precision:.3f}")
-        elif metric == 'g_mean':
-            g_mean = geometric_mean_score(y_test, y_pred, pos_label=pos_label)
-            logger.info(f"Geometric mean: {g_mean:.3f}")
         elif metric == 'kappa':
             kappa = cohen_kappa_score(y_test, y_pred)
             logger.info(f"Kappa: {kappa:.3f}")
