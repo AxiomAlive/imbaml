@@ -24,7 +24,7 @@ class FLAMLExperimentRunner(AutoMLRunner):
             dataset_name: str,
             n_evals: int) -> None:
         automl = AutoML()
-        automl.fit(X_train, y_train, task='classification', time_budget=-1, metric='f1')
+        automl.fit(X_train, y_train, task='classification', time_budget=-1, metric=self._metric)
 
         best_loss = automl.best_loss
         best_model = automl.best_estimator

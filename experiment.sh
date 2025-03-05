@@ -3,7 +3,7 @@
 run_experiment() {
   declare out='file'
   declare automl='imba'
-  declare preset='good_quality'
+  declare preset='high_quality'
   declare metric='f1'
   #TODO: add tasks argument.
 
