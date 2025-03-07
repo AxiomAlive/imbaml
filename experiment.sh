@@ -21,7 +21,7 @@ run_experiment() {
   fi
 
   if [[ "$*" == *"acc"* ]]; then
-      metric="balanced_acc"
+      metric="balanced_accuracy"
     fi
 
   if [[ "$automl" == "imba" ]]; then

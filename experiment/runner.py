@@ -160,7 +160,7 @@ class AutoMLRunner(ABC):
         if metric == 'f1':
             f1 = fbeta_score(y_test, kwargs.get("y_pred"), beta=1, pos_label=pos_label)
             logger.info(f"F1: {f1:.3f}")
-        elif metric == 'balanced_acc':
+        elif metric == 'balanced_accuracy':
             balanced_accuracy = balanced_accuracy_score(y_test, y_pred)
             logger.info(f"Balanced accuracy: {balanced_accuracy:.3f}")
         elif metric == 'auc_pr':
