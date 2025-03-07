@@ -34,8 +34,8 @@ class ExperimentMain:
         if trials is not None and trials == 0:
             trials = None
 
-        if metric_name not in ['f1', 'balanced_acc']:
-            raise ValueError("Invalid --metric option. Options available: ['f1', 'balanced_acc'].")
+        if metric_name not in ['f1', 'balanced_accuracy']:
+            raise ValueError("Invalid --metric option. Options available: ['f1', 'balanced_accuracy'].")
 
         if automl == 'ag':
             if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
