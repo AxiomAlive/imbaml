@@ -100,6 +100,11 @@ class ImbaExperimentRunner(AutoMLRunner):
             metric = f1_score
         elif self._metric == 'balanced_acc':
             metric = balanced_accuracy_score
+        elif self._metric == 'average_precision':
+            metric = average_precision_score
+        else:
+            raise ValueError(f"_metric contains invalid value: {self._metric}.")
+
         ray_configuration = {
             'X': X_train,
             'y': y_train,

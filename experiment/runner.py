@@ -13,7 +13,7 @@ from imblearn.datasets import make_imbalance
 from imblearn.metrics import geometric_mean_score
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, cohen_kappa_score, \
-    precision_recall_curve, auc
+    precision_recall_curve, auc, average_precision_score
 from sklearn.preprocessing import LabelEncoder
 
 from experiment.benchmark import FittedModel, ZenodoExperimentRunner
@@ -163,11 +163,10 @@ class AutoMLRunner(ABC):
         elif metric == 'balanced_accuracy':
             balanced_accuracy = balanced_accuracy_score(y_test, y_pred)
             logger.info(f"Balanced accuracy: {balanced_accuracy:.3f}")
-        elif metric == 'auc_pr':
-            pr_curve = precision_recall_curve(y_test, y_pred, pos_label=pos_label)
+        elif metric == 'average_precision':
+            average_precision = average_precision_score(y_test, y_pred, pos_label=pos_label)
 
-            auc_pr = auc(pr_curve)
-            logger.info(f"AUC-PR: {auc_pr:.3f}")
+            logger.info(f"Average precision: {average_precision:.3f}")
         elif metric == 'recall':
             recall = recall_score(y_test, y_pred, pos_label=pos_label)
             logger.info(f"Recall: {recall:.3f}")

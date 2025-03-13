@@ -24,6 +24,10 @@ run_experiment() {
       metric="balanced_accuracy"
     fi
 
+  if [[ "$*" == *"avg_pr"* ]]; then
+        metric="average_precision"
+      fi
+
   if [[ "$automl" == "imba" ]]; then
     source env/bin/activate
   else
