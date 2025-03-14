@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 class FLAMLExperimentRunner(AutoMLRunner):
     def __init__(self, metric):
         super().__init__(metric)
+        if self._metric == 'average_precision':
+            self._metric = 'ap'
+        elif self._metric == 'balanced_accuracy':
+            raise ValueError("Balanced accuracy is not supported.")
 
     def fit(self,
             X_train: Union[np.ndarray, pd.DataFrame],

@@ -100,8 +100,10 @@ class AutoMLRunner(ABC):
                 return
 
             n_evals = self.__n_evals
-            if task.id in [9, 23, 26]:
+            if task.id in [9, 23]:
                 n_evals //= 2
+            elif task.id == 26:
+                n_evals //= 3
 
             if isinstance(task.X, np.ndarray):
                 X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(task.X, task.y)
@@ -165,7 +167,6 @@ class AutoMLRunner(ABC):
             logger.info(f"Balanced accuracy: {balanced_accuracy:.3f}")
         elif metric == 'average_precision':
             average_precision = average_precision_score(y_test, y_pred, pos_label=pos_label)
-
             logger.info(f"Average precision: {average_precision:.3f}")
         elif metric == 'recall':
             recall = recall_score(y_test, y_pred, pos_label=pos_label)

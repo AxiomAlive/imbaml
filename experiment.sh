@@ -24,11 +24,11 @@ run_experiment() {
       metric="balanced_accuracy"
     fi
 
-  if [[ "$*" == *"avg_pr"* ]]; then
+  if [[ "$*" == *"ap"* ]]; then
         metric="average_precision"
       fi
 
-  if [[ "$automl" == "imba" ]]; then
+  if [[ "$automl" == "imba" ]] || [[ ! -d ./devenv ]]; then
     source env/bin/activate
   else
     source devenv/bin/activate
