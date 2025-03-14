@@ -81,7 +81,7 @@ class ExperimentMain:
         else:
             raise ValueError("Invalid --out option. Options available: ['file', 'console'].")
 
-        benchmark_runner = automl_runner.get_benchmark_runner()
+        benchmark_runner = automl_runner.benchmark_runner
         benchmark_runner.define_tasks(tasks)
 
         automl_runner.run(trials)

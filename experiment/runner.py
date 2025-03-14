@@ -27,19 +27,20 @@ class AutoMLRunner(ABC):
     def __init__(self, metric):
         self._metric = metric
         self._benchmark_runner = ZenodoExperimentRunner()
-
         self.__n_evals = 70
+        self._metric_automl_arg = self._metric
         self._fitted_model: FittedModel = None
 
         self._configure_environment()
 
-    def get_benchmark_runner(self):
+    @property
+    def benchmark_runner(self):
         return self._benchmark_runner
 
     def _configure_environment(self):
         np.random.seed(42)
 
-        logger.info("Prepared env.")
+        logger.info("Prepared environment.")
 
 
     @abstractmethod

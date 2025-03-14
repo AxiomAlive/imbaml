@@ -17,9 +17,10 @@ class FLAMLExperimentRunner(AutoMLRunner):
     def __init__(self, metric):
         super().__init__(metric)
         if self._metric == 'average_precision':
-            self._metric = 'ap'
+            self._metric_automl_arg = 'ap'
         elif self._metric == 'balanced_accuracy':
             raise ValueError("Balanced accuracy is not supported.")
+
 
     def fit(self,
             X_train: Union[np.ndarray, pd.DataFrame],
@@ -28,7 +29,7 @@ class FLAMLExperimentRunner(AutoMLRunner):
             dataset_name: str,
             n_evals: int) -> None:
         automl = AutoML()
-        automl.fit(X_train, y_train, task='classification', time_budget=-1, metric=self._metric)
+        automl.fit(X_train, y_train, task='classification', time_budget=-1, metric=self._metric_automl_arg)
 
         best_loss = automl.best_loss
         best_model = automl.best_estimator

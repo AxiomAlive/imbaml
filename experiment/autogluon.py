@@ -80,7 +80,7 @@ class AutoGluonExperimentRunner(AutoMLRunner):
         autogluon_predictor = TabularPredictor(
             problem_type='binary',
             label=target_label,
-            eval_metric=self._metric,
+            eval_metric=self._metric_automl_arg,
             verbosity=2) \
             .fit(
             autogluon_dataset_train,
