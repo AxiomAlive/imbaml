@@ -111,9 +111,11 @@ class AutoMLRunner(ABC):
             elif task.id == 26:
                 n_evals //= 3
 
-            if isinstance(task.X, np.ndarray):
-                X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(task.X, task.y)
-            elif isinstance(task.X, pd.DataFrame):
+            if isinstance(task.X, np.ndarray) or isinstance(task.X, pd.DataFrame):
+                #     label_encoder = LabelEncoder()
+                #     encoded_y = label_encoder.fit_transform(task.y)
+                #     X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(task.X, encoded_y)
+                # elif isinstance(task.X, pd.DataFrame):
                 preprocessed_data = self.preprocess_data(task.X, task.y.squeeze())
 
                 if preprocessed_data is None:
@@ -131,7 +133,7 @@ class AutoMLRunner(ABC):
             logger.info(class_belongings)
 
             if len(class_belongings) > 2:
-                logger.info("Multiclass problems are not currently supported.")
+                logger.info("Multiclass problems currently not supported.")
                 return
 
             iterator_of_class_belongings = iter(sorted(class_belongings))
@@ -213,28 +215,34 @@ class AutoMLRunner(ABC):
                     metric,
                     **compute_metric_score_kwargs)
 
-    def preprocess_data(self, X: pd.DataFrame, y: pd.Series) -> Optional[Tuple[pd.DataFrame, pd.Series]]:
-        X.dropna(inplace=True)
+    def preprocess_data(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray]) -> Optional[Tuple[pd.DataFrame, pd.Series]]:
+        if isinstance(X, pd.DataFrame):
+            X.dropna(inplace=True)
 
-        if type(y.iloc[0]) is str:
-            label_encoder = LabelEncoder()
-            y = pd.Series(label_encoder.fit_transform(y))
+        label_encoder = LabelEncoder()
+        encoded_y = label_encoder.fit_transform(y)
 
-        for dataset_feature_name in X.copy():
-            dataset_feature = X.get(dataset_feature_name)
+        if isinstance(y, pd.Series):
+            y = pd.Series(encoded_y)
+        else:
+            y = encoded_y
 
-            if len(dataset_feature) == 0:
-                X.drop([dataset_feature_name], axis=1, inplace=True)
-                continue
-            if type(dataset_feature.iloc[0]) is str:
-                dataset_feature_encoded = pd.get_dummies(dataset_feature, prefix=dataset_feature_name)
-                X.drop([dataset_feature_name], axis=1, inplace=True)
-                X = pd.concat([X, dataset_feature_encoded], axis=1).reset_index(drop=True)
+        if isinstance(X, pd.DataFrame):
+            for dataset_feature_name in X.copy():
+                dataset_feature = X.get(dataset_feature_name)
 
-        if len(X.index) != len(y.index):
-            logger.warning(f"X index: {X.index} and y index {y.index}.")
-            logger.error("Unexpected X size.")
-            return None
+                if len(dataset_feature) == 0:
+                    X.drop([dataset_feature_name], axis=1, inplace=True)
+                    continue
+                if type(dataset_feature.iloc[0]) is str:
+                    dataset_feature_encoded = pd.get_dummies(dataset_feature, prefix=dataset_feature_name)
+                    X.drop([dataset_feature_name], axis=1, inplace=True)
+                    X = pd.concat([X, dataset_feature_encoded], axis=1).reset_index(drop=True)
+
+            if len(X.index) != len(y.index):
+                logger.warning(f"X index: {X.index} and y index {y.index}.")
+                logger.error("Unexpected X size.")
+                return None
 
         return X, y
 

@@ -13,15 +13,16 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 from imbens.ensemble import AdaUBoostClassifier, AdaCostClassifier, AsymBoostClassifier
 from sklearn.metrics import *
 
-from search_spaces.ensemble.boost import AdaReweightedGenerator
+from search_spaces.ensemble.boost import AdaReweightedGenerator, XGBoostGenerator
 from search_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
 from search_spaces.ensemble.bag import BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
-from .runner import ZenodoExperimentRunner, AutoMLRunner
 
 import ray
 from ray.tune.search.hyperopt import HyperOptSearch
 from ray.train import RunConfig
+
+from .runner import ZenodoExperimentRunner, AutoMLRunner
 
 
 logger = logging.getLogger(__name__)
@@ -86,12 +87,15 @@ class ImbaExperimentRunner(AutoMLRunner):
         logger.info(f"Number of optimization search trials: {n_evals}.")
 
         #TODO: check efficiency of EasyEnsemble and RUSBoost.
+        # model_classes = [
+        #     AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
+        #     AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
+        #     AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
+        #     BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
+        #     BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
+        # ]
         model_classes = [
-            AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
-            AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
-            AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
-            BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
-            BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
+            XGBoostGenerator.generate_algorithm_configuration_space()
         ]
 
         algorithms_configuration = hp.choice("algorithm_configuration", model_classes)

@@ -20,7 +20,10 @@ import numpy as np
 from hyperopt import hp
 from typing import TypeVar
 from sklearn.ensemble import AdaBoostClassifier
+from xgboost import XGBClassifier
+
 from search_spaces import MLModelGenerator
+
 
 
 logger = logging.getLogger(__name__)
@@ -67,5 +70,24 @@ class EasyEnsembleGenerator(MLModelGenerator):
     def generate_algorithm_configuration_space(cls, model_class=None):
         param_map = super().generate_algorithm_configuration_space()
         param_map.update({'model_class': EasyEnsembleClassifier})
+
+        return param_map
+
+
+class XGBoostGenerator(MLModelGenerator):
+    max_depth = scope.int(hp.uniform('xgb.max_depth', 1, 11))
+    learning_rate = hp.loguniform('xgb.learning_rate', np.log(0.0001), np.log(0.5)) - 0.0001
+    n_estimators=  scope.int(hp.quniform('xgb.n_estimators', 100, 6000, 200))
+    min_child_weight = scope.int(hp.loguniform('xgb.min_child_weight', np.log(1), np.log(100)))
+    subsample = hp.uniform('xgb.subsample', 0.5, 1)
+    colsample_bylevel =  hp.uniform('xgb.colsample_bylevel', 0.5, 1)
+    colsample_bytree =  hp.uniform('xgb.colsample_bytree', 0.5, 1)
+    reg_alpha = hp.loguniform('xgb.reg_alpha', np.log(0.0001), np.log(1)) - 0.0001
+    reg_lambda = hp.loguniform('xgb.reg_lambda', np.log(1), np.log(4))
+
+    @classmethod
+    def generate_algorithm_configuration_space(cls, model_class=None):
+        param_map = super().generate_algorithm_configuration_space()
+        param_map.update({'model_class': XGBClassifier})
 
         return param_map
