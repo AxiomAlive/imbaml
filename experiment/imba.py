@@ -13,9 +13,9 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 from imbens.ensemble import AdaUBoostClassifier, AdaCostClassifier, AsymBoostClassifier
 from sklearn.metrics import *
 
-from config_spaces.ensemble.boost import AdaReweightedGenerator
-from config_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
-from config_spaces.ensemble.bag import BalancedRandomForestGenerator
+from search_spaces.ensemble.boost import AdaReweightedGenerator
+from search_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
+from search_spaces.ensemble.bag import BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
 from .runner import ZenodoExperimentRunner, AutoMLRunner
 
@@ -103,7 +103,7 @@ class ImbaExperimentRunner(AutoMLRunner):
         elif self._metric == 'average_precision':
             metric = average_precision_score
         else:
-            raise ValueError(f"_metric attribute contains invalid value: {self._metric}.")
+            raise ValueError(f"_metric attribute contains not supported value: {self._metric}.")
 
         ray_configuration = {
             'X': X_train,

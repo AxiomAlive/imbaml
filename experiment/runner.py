@@ -9,6 +9,7 @@ from typing import Union, Optional, List, Tuple, final
 
 import numpy as np
 import pandas as pd
+import ray
 from imblearn.datasets import make_imbalance
 from imblearn.metrics import geometric_mean_score
 from sklearn.exceptions import NotFittedError
@@ -19,6 +20,7 @@ from sklearn.preprocessing import LabelEncoder
 from experiment.benchmark import FittedModel, ZenodoExperimentRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.model_selection import train_test_split as tts
+from ray.tune import logger as ray_logger
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +95,9 @@ class AutoMLRunner(ABC):
 
     @ExceptionWrapper.log_exception
     def run(self, n_evals: Optional[int] = None):
+        from experiment.imba import ImbaExperimentRunner
+        if isinstance(self, ImbaExperimentRunner):
+            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
         if n_evals is not None:
             self.__n_evals = n_evals
 
@@ -180,7 +185,7 @@ class AutoMLRunner(ABC):
             logger.info(f"Kappa: {kappa:.3f}")
         elif metric == 'time_passed':
             time_passed = time.time() - start_time
-            logger.info(f"Time passed: {time_passed // 3600} hours, {time_passed // 60 % 60} minutes and {time_passed % 60} seconds.")
+            logger.info(f"Time passed: {time_passed // 60} minutes.")
 
     def examine_quality(
             self,

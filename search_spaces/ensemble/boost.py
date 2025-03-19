@@ -20,7 +20,7 @@ import numpy as np
 from hyperopt import hp
 from typing import TypeVar
 from sklearn.ensemble import AdaBoostClassifier
-from config_spaces import MLModelGenerator
+from search_spaces import MLModelGenerator
 
 
 logger = logging.getLogger(__name__)
