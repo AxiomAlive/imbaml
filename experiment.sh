@@ -1,15 +1,17 @@
 #!/bin/bash
 
 run_experiment() {
-  declare out='file'
+  declare log_to_filesystem=true
   declare automl='imba'
   declare preset='best_quality'
   declare metric='f1'
+
   #TODO: add tasks argument.
 
   # TODO: check for flags for comparison.
-  if [[ "$*" == *"c"* ]]; then
-    out="console"
+  if [[ "$*" == *"console"* ]]; then
+    # equals to false
+    unset log_to_filesystem
   fi
 
   if [[ "$*" == *"ag"* ]]; then
@@ -34,7 +36,7 @@ run_experiment() {
     source devenv/bin/activate
   fi
 
-  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --out="$out" --preset="$preset" --metric="$metric"
+  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --log_to_filesystem="$log_to_filesystem" --preset="$preset" --metric="$metric"
 }
 
 
