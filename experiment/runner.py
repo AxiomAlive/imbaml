@@ -158,7 +158,7 @@ class AutoMLRunner(ABC):
                 self.examine_quality('time_passed', start_time=start_time)
 
                 y_predictions = self.predict(X_test)
-                self.examine_quality(self._metrics, y_test, y_predictions, positive_class_label)
+                self.examine_quality(metric, y_test, y_predictions, positive_class_label)
 
     def _compute_metric_score(self, metric: str, *args, **kwargs):
         y_test = kwargs.get("y_test")

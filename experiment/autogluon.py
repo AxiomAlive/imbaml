@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 
 class AutoGluonExperimentRunner(AutoMLRunner):
-    def __init__(self, metric, preset):
-        super().__init__(metric)
+    def __init__(self, metrics, preset):
+        super().__init__(metrics)
         self._preset = preset
 
     def get_preset(self):

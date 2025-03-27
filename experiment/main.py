@@ -20,14 +20,14 @@ class ExperimentMain:
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
         parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
         parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
-        parser.add_argument('--metrics', action='store', dest='metric', type=list, default=['f1'])
+        parser.add_argument('--metrics', action='store', dest='metric', default='f1')
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
         log_to_filesystem = getattr(args, 'log_to_filesystem')
         autogluon_preset = getattr(args, 'preset')
         trials = getattr(args, 'trials')
-        metrics = getattr(args, 'metric')
+        metrics = getattr(args, 'metric').split(" ")
 
         if trials is not None and trials == 0:
             trials = None

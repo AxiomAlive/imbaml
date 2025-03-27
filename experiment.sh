@@ -6,8 +6,6 @@ run_experiment() {
   declare preset='best_quality'
   declare metrics=('f1')
 
-  #TODO: add tasks argument.
-
   # TODO: check for flags for comparison.
   if [[ "$*" == *"console"* ]]; then
     # equals to false
@@ -23,24 +21,24 @@ run_experiment() {
   fi
 
   if [[ "$*" == *"acc"* ]]; then
-    metric[0]="balanced_accuracy"
+    metrics[0]="balanced_accuracy"
   fi
 
   if [[ "$*" == *"rec"* ]]; then
-      metric[0]="recall"
+      metrics[0]="recall"
   fi
 
   if [[ "$*" == *"pr"* ]]; then
-      metric[0]="precision"
+      metrics[0]="precision"
   fi
 
   if [[ "$*" == *"ap"* ]]; then
-      metric[0]="average_precision"
+      metrics[0]="average_precision"
   fi
 
    if [[ "$*" == *"pr"* && "$*" == *"rec"* ]]; then
-        metric[0]="precision"
-        metric[1]="recall"
+        metrics[0]="precision"
+        metrics[1]="recall"
     fi
 
   if [[ "$automl" == "imba" ]] || [[ ! -d ./devenv ]]; then
