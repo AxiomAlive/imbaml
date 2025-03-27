@@ -95,9 +95,6 @@ class AutoMLRunner(ABC):
 
     @ExceptionWrapper.log_exception
     def run(self, n_evals: Optional[int] = None):
-        from experiment.imba import ImbaExperimentRunner
-        if isinstance(self, ImbaExperimentRunner):
-            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
         if n_evals is not None:
             self._n_evals = n_evals
 

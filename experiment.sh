@@ -3,7 +3,7 @@
 run_experiment() {
   declare log_to_filesystem=true
   declare automl='imba'
-  declare preset='best_quality'
+  declare preset='good_quality'
   declare metrics=('f1')
 
   # TODO: check for flags for comparison.

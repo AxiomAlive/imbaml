@@ -61,6 +61,11 @@ class ImbaExperimentRunner(AutoMLRunner):
     def __init__(self, metrics):
         super().__init__(metrics)
 
+        ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+
+    # def _configure_environment(self):
+    #     ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
         hyper_parameters = hyper_parameters.copy()
