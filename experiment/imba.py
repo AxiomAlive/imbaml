@@ -109,9 +109,7 @@ class ImbaExperimentRunner(AutoMLRunner):
 
         model_classes = [
             XGBoostGenerator.generate_algorithm_configuration_space(),
-            AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
             AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
-            AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
             BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
             BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
         ]
