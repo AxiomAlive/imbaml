@@ -14,22 +14,26 @@ logger = logging.getLogger(__name__)
 
 
 class FLAMLExperimentRunner(AutoMLRunner):
-    def __init__(self, metric):
-        super().__init__(metric)
-        if self._metric == 'average_precision':
-            self._metric_automl_arg = 'ap'
-        elif self._metric == 'balanced_accuracy':
-            raise ValueError("Balanced accuracy is not supported.")
-
+    def __init__(self, metrics):
+        super().__init__(metrics)
 
     def fit(self,
             X_train: Union[np.ndarray, pd.DataFrame],
             y_train: Union[np.ndarray, pd.Series],
+            metric_name: str,
             target_label: str,
             dataset_name: str,
             n_evals: int) -> None:
+
+        if metric_name == 'average_precision':
+            self._metric_automl_arg = 'ap'
+        elif metric_name == 'f1':
+            self._metric_automl_arg = 'f1'
+        elif metric_name in ['balanced_accuracy', 'precision', 'recall']:
+            raise ValueError(f"Metric {metric_name} is not supported.")
+
         automl = AutoML()
-        automl.fit(X_train, y_train, task='classification', time_budget=-1, metric=self._metric_automl_arg)
+        automl.fit(X_train, y_train, task='classification', time_budget=3600, metric=self._metric_automl_arg)
 
         best_loss = automl.best_loss
         best_model = automl.best_estimator

@@ -60,10 +60,16 @@ class AutoGluonExperimentRunner(AutoMLRunner):
         self,
         X_train: Union[np.ndarray, pd.DataFrame],
         y_train: Union[np.ndarray, pd.Series],
+        metric_name: str,
         target_label: str,
         dataset_name: str,
         n_evals: int
     ) -> None:
+        if metric_name  in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:
+            self._metric_automl_arg = metric_name
+        else:
+            raise ValueError(f"Metric {metric_name} is not supported.")
+
         if target_label is None and isinstance(X_train, np.ndarray):
             dataset_train = pd.DataFrame(data=np.column_stack([X_train, y_train]))
             autogluon_dataset_train = pd.DataFrame(dataset_train)

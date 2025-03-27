@@ -4,7 +4,7 @@ from typing import Union
 import pandas    as pd
 import numpy as np
 
-from hyperopt import STATUS_OK, hp
+from hyperopt import STATUS_OK, hp, fmin
 
 from ray.tune import Tuner
 from ray.tune.search import ConcurrencyLimiter
@@ -18,9 +18,10 @@ from search_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
 from search_spaces.ensemble.bag import BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
 
-import ray
 from ray.tune.search.hyperopt import HyperOptSearch
 from ray.train import RunConfig
+import ray
+import hyperopt.pyll.stochastic
 
 from .runner import ZenodoExperimentRunner, AutoMLRunner
 
@@ -57,8 +58,8 @@ class RayTuner:
 
 
 class ImbaExperimentRunner(AutoMLRunner):
-    def __init__(self, metric):
-        super().__init__(metric)
+    def __init__(self, metrics):
+        super().__init__(metrics)
 
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
@@ -81,33 +82,35 @@ class ImbaExperimentRunner(AutoMLRunner):
             self,
             X_train: Union[np.ndarray, pd.DataFrame],
             y_train: Union[np.ndarray, pd.Series],
+            metric_name: str,
             target_label: str,
             dataset_name: str,
             n_evals: int) -> None:
+
+        if metric_name == 'f1':
+            metric = f1_score
+        elif metric_name == 'balanced_accuracy':
+            metric = balanced_accuracy_score
+        elif metric_name == 'average_precision':
+            metric = average_precision_score
+        elif metric_name == 'recall':
+            metric = recall_score
+        elif metric_name == 'precision':
+            metric = precision_score
+        else:
+            raise ValueError(f"Metric {metric_name} is not supported.")
+
         logger.info(f"Number of optimization search trials: {n_evals}.")
 
-        #TODO: check efficiency of EasyEnsemble and RUSBoost.
-        # model_classes = [
-        #     AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
-        #     AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
-        #     AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
-        #     BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
-        #     BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
-        # ]
         model_classes = [
-            XGBoostGenerator.generate_algorithm_configuration_space()
+            XGBoostGenerator.generate_algorithm_configuration_space(),
+            AdaReweightedGenerator.generate_algorithm_configuration_space(AdaUBoostClassifier),
+            AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
+            AdaReweightedGenerator.generate_algorithm_configuration_space(AsymBoostClassifier),
+            BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
+            BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
         ]
-
         algorithms_configuration = hp.choice("algorithm_configuration", model_classes)
-
-        if self._metric == 'f1':
-            metric = f1_score
-        elif self._metric == 'balanced_accuracy':
-            metric = balanced_accuracy_score
-        elif self._metric == 'average_precision':
-            metric = average_precision_score
-        else:
-            raise ValueError(f"_metric attribute contains not supported value: {self._metric}.")
 
         ray_configuration = {
             'X': X_train,
@@ -142,23 +145,25 @@ class ImbaExperimentRunner(AutoMLRunner):
             # param_space=ray_configuration
         )
 
-        logger.info(f"Document {dataset_name}")
-
         results = tuner.fit()
 
         best_trial = results.get_best_result(metric='loss', mode='min')
+        assert best_trial is not None
 
         best_trial_metrics = getattr(best_trial, 'metrics')
-        if best_trial_metrics is None:
-            raise Exception("Optimization failed. No best trial found.")
+        assert best_trial_metrics is not None
 
-        logger.info(f"Training on dataset {dataset_name} finished.")
+        logger.info(f"Training on dataset {dataset_name} successfully finished.")
 
         best_validation_loss = best_trial_metrics.get('loss')
+        assert best_validation_loss is not None
 
         best_algorithm_configuration = best_trial_metrics.get('config').get('algorithm_configuration')
+        assert best_algorithm_configuration is not None
 
         best_model_class = best_algorithm_configuration.get('model_class')
+        assert best_model_class is not None
+
         best_algorithm_configuration.pop('model_class')
 
         best_model = best_model_class(**best_algorithm_configuration)

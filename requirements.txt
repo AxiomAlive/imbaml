@@ -4,3 +4,4 @@ imbalanced-learn==0.12.3
 openml==0.14.2
 ray==2.40.0
 scikit-learn==1.5.1
+xgboost-cpu=3.0.0

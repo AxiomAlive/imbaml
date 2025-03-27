@@ -20,44 +20,55 @@ class ExperimentMain:
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
         parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
         parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
-        # parser.add_argument('--tasks', action='store', dest='tasks', type=tuple, nargs='*', default=None)
-        parser.add_argument('--metric', action='store', dest='metric', default='f1')
+        parser.add_argument('--metrics', action='store', dest='metric', type=list, default=['f1'])
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
         log_to_filesystem = getattr(args, 'log_to_filesystem')
         autogluon_preset = getattr(args, 'preset')
         trials = getattr(args, 'trials')
-        # tasks = getattr(args, 'tasks')
-        metric_name = getattr(args, 'metric')
+        metrics = getattr(args, 'metric')
 
         if trials is not None and trials == 0:
             trials = None
 
-        if metric_name not in ['f1', 'balanced_accuracy', 'average_precision']:
-            raise ValueError("Invalid --metric option. Options available: ['f1', 'balanced_accuracy', 'average_precision'].")
+        for metric_name in metrics:
+            if metric_name not in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:
+                raise ValueError(
+                    """
+                    Invalid --metric option.
+                    Options available: ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision'].
+                    """)
 
         log_filepath = 'logs/'
         if automl == 'ag':
             if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
-                raise ValueError("Invalid --preset option. Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].")
+                raise ValueError(
+                    """
+                    Invalid --preset option.
+                    Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
+                    """)
 
             from experiment.autogluon import AutoGluonExperimentRunner
-            automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metric=metric_name)
+            automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metrics=metrics)
 
             log_filepath += 'AutoGluon/'
         elif automl == 'imba':
             from experiment.imba import ImbaExperimentRunner
-            automl_runner = ImbaExperimentRunner(metric_name)
+            automl_runner = ImbaExperimentRunner(metrics)
 
             log_filepath += 'Imba/'
         elif automl == 'flaml':
             from experiment.flaml_automl import FLAMLExperimentRunner
 
-            automl_runner = FLAMLExperimentRunner(metric_name)
+            automl_runner = FLAMLExperimentRunner(metrics)
             log_filepath += 'FLAML/'
         else:
-            raise ValueError("Invalid --automl option. Options available: ['imba', 'ag', 'flaml'].")
+            raise ValueError(
+                """
+                Invalid --automl option.
+                Options available: ['imba', 'ag', 'flaml'].
+                """)
 
         logging_handlers = [
             logging.StreamHandler(stream=sys.stdout),

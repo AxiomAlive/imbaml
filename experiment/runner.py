@@ -26,11 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 class AutoMLRunner(ABC):
-    def __init__(self, metric):
-        self._metric = metric
+    def __init__(self, metrics):
+        self._metrics = metrics
         self._benchmark_runner = ZenodoExperimentRunner()
-        self.__n_evals = 70
-        self._metric_automl_arg = self._metric
+        self._n_evals = 70
         self._fitted_model: FittedModel = None
 
         self._configure_environment()
@@ -50,6 +49,7 @@ class AutoMLRunner(ABC):
             self,
             X_train: Union[np.ndarray, pd.DataFrame],
             y_train: Union[np.ndarray, pd.Series],
+            metric_name: str,
             target_label: str,
             dataset_name: str,
             n_evals: int):
@@ -99,17 +99,17 @@ class AutoMLRunner(ABC):
         if isinstance(self, ImbaExperimentRunner):
             ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
         if n_evals is not None:
-            self.__n_evals = n_evals
+            self._n_evals = n_evals
 
         for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return
 
-            n_evals = self.__n_evals
+            n_evals = self._n_evals
             if task.id in [9, 23]:
-                n_evals //= 2
-            elif task.id == 26:
                 n_evals //= 3
+            elif task.id == 26:
+                n_evals //= 4
 
             if isinstance(task.X, np.ndarray) or isinstance(task.X, pd.DataFrame):
                 #     label_encoder = LabelEncoder()
@@ -138,7 +138,7 @@ class AutoMLRunner(ABC):
 
             iterator_of_class_belongings = iter(sorted(class_belongings))
             *_, positive_class_label = iterator_of_class_belongings
-            logger.info(f"Pos class label: {positive_class_label}")
+            logger.info(f"Positive class label: {positive_class_label}")
 
             number_of_positives = class_belongings.get(positive_class_label, None)
 
@@ -146,20 +146,19 @@ class AutoMLRunner(ABC):
                 logger.error("Unknown positive class label.")
                 return
 
-            # X_train, y_train = self._make_imbalance(X_train, y_train, class_belongings, positive_class_label)
-
             number_of_train_instances_by_class = Counter(y_train)
             logger.info(number_of_train_instances_by_class)
 
             # estimated_dataset_size_in_memory = y_train.memory_usage(deep=True) / (1024 ** 2)
             # logger.info(f"Dataset size: {estimated_dataset_size_in_memory}")
 
-            start_time = time.time()
-            self.fit(X_train, y_train, task.target_label, task.name, n_evals)
-            self.examine_quality('time_passed', start_time=start_time)
+            for metric in self._metrics:
+                start_time = time.time()
+                self.fit(X_train, y_train, metric, task.target_label, task.name, n_evals)
+                self.examine_quality('time_passed', start_time=start_time)
 
-            y_predictions = self.predict(X_test)
-            self.examine_quality(self._metric, y_test, y_predictions, positive_class_label)
+                y_predictions = self.predict(X_test)
+                self.examine_quality(self._metrics, y_test, y_predictions, positive_class_label)
 
     def _compute_metric_score(self, metric: str, *args, **kwargs):
         y_test = kwargs.get("y_test")
@@ -182,9 +181,6 @@ class AutoMLRunner(ABC):
         elif metric == 'precision':
             precision = precision_score(y_test, y_pred, pos_label=pos_label)
             logger.info(f"Precision: {precision:.3f}")
-        elif metric == 'kappa':
-            kappa = cohen_kappa_score(y_test, y_pred)
-            logger.info(f"Kappa: {kappa:.3f}")
         elif metric == 'time_passed':
             time_passed = time.time() - start_time
             logger.info(f"Time passed: {time_passed // 60} minutes.")

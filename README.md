@@ -1,4 +1,4 @@
-<h2>Configuration-free imbalanced learning</h2>
+<h2>ImbaML: Configuration-free Imbalanced Learning</h2>
 
 The long-term goal of the project is to facilitate automated design of machine learning pipelines in the case of imbalanced distribution of target classes.
 </div>
@@ -15,14 +15,13 @@ Benchmark experiments are available for [Auto-gluon](https://github.com/autogluo
 
 ### Usage example
 
-To run a benchmark just type in the terminal:
+To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/imblearn.datasets.fetch_datasets.html#imblearn.datasets.fetch_datasets) just type in the terminal:
 ```
 ./experiment.sh
 ```
 
-By default, benchmark for Imba will be run. To change to **Auto-gluon**, add the `ag` argument.
+By default, benchmark for ImbaML will be run. To change to **Auto-gluon** add the `ag` argument; to change to FLAML add the `flaml` argument. 
 <br/>
 <br/>
-Stdout is in a file. To change to **console** output, add the `c` argument.
 
 

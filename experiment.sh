@@ -4,7 +4,7 @@ run_experiment() {
   declare log_to_filesystem=true
   declare automl='imba'
   declare preset='best_quality'
-  declare metric='f1'
+  declare metrics=('f1')
 
   #TODO: add tasks argument.
 
@@ -23,12 +23,25 @@ run_experiment() {
   fi
 
   if [[ "$*" == *"acc"* ]]; then
-      metric="balanced_accuracy"
-    fi
+    metric[0]="balanced_accuracy"
+  fi
+
+  if [[ "$*" == *"rec"* ]]; then
+      metric[0]="recall"
+  fi
+
+  if [[ "$*" == *"pr"* ]]; then
+      metric[0]="precision"
+  fi
 
   if [[ "$*" == *"ap"* ]]; then
-        metric="average_precision"
-      fi
+      metric[0]="average_precision"
+  fi
+
+   if [[ "$*" == *"pr"* && "$*" == *"rec"* ]]; then
+        metric[0]="precision"
+        metric[1]="recall"
+    fi
 
   if [[ "$automl" == "imba" ]] || [[ ! -d ./devenv ]]; then
     source env/bin/activate
@@ -36,7 +49,7 @@ run_experiment() {
     source devenv/bin/activate
   fi
 
-  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --log_to_filesystem="$log_to_filesystem" --preset="$preset" --metric="$metric"
+  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --log_to_filesystem="$log_to_filesystem" --preset="$preset" --metrics="${metrics[*]}"
 }
 
 
