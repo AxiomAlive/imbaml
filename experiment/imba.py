@@ -4,26 +4,25 @@ from typing import Union
 import pandas    as pd
 import numpy as np
 
-from hyperopt import STATUS_OK, hp, fmin
+from hyperopt import STATUS_OK, hp
 
 from ray.tune import Tuner
 from ray.tune.search import ConcurrencyLimiter
 from sklearn.exceptions import NotFittedError
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-from imbens.ensemble import AdaUBoostClassifier, AdaCostClassifier, AsymBoostClassifier
+from imbens.ensemble import AdaCostClassifier
 from sklearn.metrics import *
 
-from search_spaces.ensemble.boost import AdaReweightedGenerator, XGBoostGenerator
-from search_spaces.ensemble.bag import BalancedBaggingClassifierGenerator
-from search_spaces.ensemble.bag import BalancedRandomForestGenerator
+from search_spaces.balanced.ensemble.boost import AdaReweightedGenerator, XGBoostGenerator, LightGBMGenerator
+from search_spaces.balanced.ensemble.bag import BalancedBaggingClassifierGenerator, ExtraTreesGenerator
+from search_spaces.balanced.ensemble.bag import BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
 
 from ray.tune.search.hyperopt import HyperOptSearch
 from ray.train import RunConfig
 import ray
-import hyperopt.pyll.stochastic
 
-from .runner import ZenodoExperimentRunner, AutoMLRunner
+from .runner import AutoMLRunner
 
 
 logger = logging.getLogger(__name__)
@@ -107,19 +106,21 @@ class ImbaExperimentRunner(AutoMLRunner):
 
         logger.info(f"Number of optimization search trials: {n_evals}.")
 
-        model_classes = [
+        search_space = [
             XGBoostGenerator.generate_algorithm_configuration_space(),
             AdaReweightedGenerator.generate_algorithm_configuration_space(AdaCostClassifier),
             BalancedRandomForestGenerator.generate_algorithm_configuration_space(),
             BalancedBaggingClassifierGenerator.generate_algorithm_configuration_space(),
+            LightGBMGenerator.generate_algorithm_configuration_space(),
+            ExtraTreesGenerator.generate_algorithm_configuration_space()
         ]
-        algorithms_configuration = hp.choice("algorithm_configuration", model_classes)
+        search_configurations = hp.choice("search_configurations", search_space)
 
         ray_configuration = {
             'X': X_train,
             'y': y_train,
             'metric': metric,
-            'algorithm_configuration': algorithms_configuration
+            'search_configurations': search_configurations
         }
 
         # HyperOptSearch(points_to_evaluate = promising initial points)

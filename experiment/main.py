@@ -14,7 +14,7 @@ from pathlib import Path
 
 class ExperimentMain:
     @staticmethod
-    def main():
+    def run():
         parser = argparse.ArgumentParser()
         parser.add_argument('--automl', action='store', dest='automl', default='imba')
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
@@ -91,5 +91,5 @@ class ExperimentMain:
 
 
 if __name__ == '__main__':
-    ExperimentMain.main()
+    ExperimentMain.run()
 

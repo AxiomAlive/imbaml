@@ -40,9 +40,9 @@ class AutoMLRunner(ABC):
 
     def _configure_environment(self):
         np.random.seed(42)
+        logger.info("Set seed to 42.")
 
         logger.info("Prepared environment.")
-
 
     @abstractmethod
     def fit(
