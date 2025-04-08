@@ -7,36 +7,38 @@ run_experiment() {
   declare metrics=('f1')
 
   # TODO: check for flags for comparison.
-  if [[ "$*" == *"console"* ]]; then
+  if [[ "$*" == *"-c"* ]]; then
     # equals to false
     unset log_to_filesystem
   fi
 
-  if [[ "$*" == *"ag"* ]]; then
+  if [[ "$*" == *"-ag"* ]]; then
     automl="ag"
+  else
+    unset preset
   fi
 
-  if [[ "$*" == *"flaml"* ]]; then
+  if [[ "$*" == *"-flaml"* ]]; then
     automl="flaml"
   fi
 
-  if [[ "$*" == *"acc"* ]]; then
+  if [[ "$*" == *"-acc"* ]]; then
     metrics[0]="balanced_accuracy"
   fi
 
-  if [[ "$*" == *"rec"* ]]; then
+  if [[ "$*" == *"-rec"* ]]; then
       metrics[0]="recall"
   fi
 
-  if [[ "$*" == *"pr"* ]]; then
+  if [[ "$*" == *"-pr"* ]]; then
       metrics[0]="precision"
   fi
 
-  if [[ "$*" == *"ap"* ]]; then
+  if [[ "$*" == *"-ap"* ]]; then
       metrics[0]="average_precision"
   fi
 
-   if [[ "$*" == *"pr"* && "$*" == *"rec"* ]]; then
+   if [[ "$*" == *"-pr"* && "$*" == *"-rec"* ]]; then
         metrics[0]="precision"
         metrics[1]="recall"
     fi

@@ -18,7 +18,7 @@ class ExperimentMain:
         parser = argparse.ArgumentParser()
         parser.add_argument('--automl', action='store', dest='automl', default='imba')
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
-        parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
+        parser.add_argument('--preset', action='store', dest='preset', default=None)
         parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
         parser.add_argument('--metrics', action='store', dest='metric', default='f1')
 
@@ -42,26 +42,10 @@ class ExperimentMain:
 
         log_filepath = 'logs/'
         if automl == 'ag':
-            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
-                raise ValueError(
-                    """
-                    Invalid --preset option.
-                    Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
-                    """)
-
-            from experiment.autogluon import AutoGluonExperimentRunner
-            automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metrics=metrics)
-
             log_filepath += 'AutoGluon/'
         elif automl == 'imba':
-            from experiment.imba import ImbaExperimentRunner
-            automl_runner = ImbaExperimentRunner(metrics)
-
             log_filepath += 'Imba/'
         elif automl == 'flaml':
-            from experiment.flaml_automl import FLAMLExperimentRunner
-
-            automl_runner = FLAMLExperimentRunner(metrics)
             log_filepath += 'FLAML/'
         else:
             raise ValueError(
@@ -83,6 +67,29 @@ class ExperimentMain:
             format='%(asctime)s - %(levelname)s - %(message)s',
             handlers=logging_handlers
         )
+
+        if automl == 'ag':
+            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', None]:
+                raise ValueError(
+                    """
+                    Invalid --preset option.
+                    Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
+                    """)
+
+            from experiment.autogluon import AutoGluonExperimentRunner
+            automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metrics=metrics)
+        elif automl == 'imba':
+            from experiment.imba import ImbaExperimentRunner
+            automl_runner = ImbaExperimentRunner(metrics)
+        elif automl == 'flaml':
+            from experiment.flaml_automl import FLAMLExperimentRunner
+            automl_runner = FLAMLExperimentRunner(metrics)
+        else:
+            raise ValueError(
+                """
+                Invalid --automl option.
+                Options available: ['imba', 'ag', 'flaml'].
+                """)
 
         benchmark_runner = automl_runner.benchmark_runner
         benchmark_runner.define_tasks()

@@ -59,15 +59,7 @@ class XGBoostGenerator(MLModelGenerator):
         return param_map
 
 
-class LightGBMGenerator(MLModelGenerator):
-    max_depth = scope.int(hp.uniform('lgbm.max_depth', 1, 11))
-    learning_rate = hp.loguniform('xgb.learning_rate', np.log(0.0001), np.log(0.5)) - 0.0001
-    n_estimators=  scope.int(hp.quniform('xgb.n_estimators', 100, 6000, 200))
-    min_child_weight = scope.int(hp.loguniform('xgb.min_child_weight', np.log(1), np.log(100)))
-    subsample = hp.uniform('xgb.subsample', 0.5, 1)
-    colsample_bytree =  hp.uniform('xgb.colsample_bytree', 0.5, 1)
-    reg_alpha = hp.loguniform('xgb.reg_alpha', np.log(0.0001), np.log(1)) - 0.0001
-    reg_lambda = hp.loguniform('xgb.reg_lambda', np.log(1), np.log(4))
+class LightGBMGenerator(XGBoostGenerator):
     num_leaves = scope.int(hp.uniform('lgbm.num_leaves', 2, 121))
     boosting_type = hp.choice('lgbm.boosting_type', ['gbdt', 'dart', 'goss'])
 

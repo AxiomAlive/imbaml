@@ -13,9 +13,10 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 from imbens.ensemble import AdaCostClassifier
 from sklearn.metrics import *
 
-from search_spaces.balanced.ensemble.boost import AdaReweightedGenerator, XGBoostGenerator, LightGBMGenerator
-from search_spaces.balanced.ensemble.bag import BalancedBaggingClassifierGenerator, ExtraTreesGenerator
-from search_spaces.balanced.ensemble.bag import BalancedRandomForestGenerator
+from search_spaces.imbalanced.ensemble.boost import AdaReweightedGenerator
+from search_spaces.balanced.ensemble.boost import XGBoostGenerator, LightGBMGenerator
+from search_spaces.balanced.ensemble.bag import ExtraTreesGenerator
+from search_spaces.imbalanced.ensemble.bag import BalancedBaggingClassifierGenerator, BalancedRandomForestGenerator
 from utils.decorators import ExceptionWrapper
 
 from ray.tune.search.hyperopt import HyperOptSearch
@@ -31,7 +32,7 @@ class RayTuner:
     @staticmethod
     def trainable(config):
         trial_result = ImbaExperimentRunner.compute_metric_score(
-            config['algorithm_configuration'],
+            config['search_configurations'],
             config['metric'],
             config['X'],
             config['y'])
@@ -58,12 +59,11 @@ class RayTuner:
 
 class ImbaExperimentRunner(AutoMLRunner):
     def __init__(self, metrics):
+        super()._configure_environment()
         super().__init__(metrics)
 
+    def _configure_environment(self):
         ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
-
-    # def _configure_environment(self):
-    #     ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
 
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
@@ -162,7 +162,7 @@ class ImbaExperimentRunner(AutoMLRunner):
         best_validation_loss = best_trial_metrics.get('loss')
         assert best_validation_loss is not None
 
-        best_algorithm_configuration = best_trial_metrics.get('config').get('algorithm_configuration')
+        best_algorithm_configuration = best_trial_metrics.get('config').get('search_configurations')
         assert best_algorithm_configuration is not None
 
         best_model_class = best_algorithm_configuration.get('model_class')

@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class AutoGluonExperimentRunner(AutoMLRunner):
-    def __init__(self, metrics, preset):
+    def __init__(self, metrics, preset='good_quality'):
         super().__init__(metrics)
         self._preset = preset
 
@@ -41,7 +41,11 @@ class AutoGluonExperimentRunner(AutoMLRunner):
 
     def set_preset(self, preset):
         if preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
-            raise ValueError("Invalid value of parameter preset. Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].")
+            raise ValueError(
+                """
+                Invalid value of parameter preset.
+                Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
+                """)
         self._preset = preset
 
     # TODO: check how to apply decorators for abstract class inheritance case.
