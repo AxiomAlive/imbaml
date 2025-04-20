@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import f1_score
 
-from experiment.runner import AutoMLRunner
+from benchmark.runner import AutoMLRunner
 from flaml import AutoML
 
 
@@ -22,8 +22,7 @@ class FLAMLExperimentRunner(AutoMLRunner):
             y_train: Union[np.ndarray, pd.Series],
             metric_name: str,
             target_label: str,
-            dataset_name: str,
-            n_evals: int) -> None:
+            dataset_name: str) -> None:
 
         if metric_name == 'average_precision':
             self._metric_automl_arg = 'ap'

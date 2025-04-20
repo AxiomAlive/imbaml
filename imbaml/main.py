@@ -1,42 +1,23 @@
 import logging
-from typing import Union
+from typing import Union, Callable
 
-import pandas    as pd
 import numpy as np
-
-from hyperopt import STATUS_OK, hp
-
-from ray.tune import Tuner
-from ray.tune.search import ConcurrencyLimiter
-from sklearn.exceptions import NotFittedError
-from sklearn.model_selection import cross_val_score, StratifiedKFold
-from imbens.ensemble import AdaCostClassifier
-from sklearn.metrics import *
-
-from search_spaces.imbalanced.ensemble.boost import AdaReweightedGenerator
-from search_spaces.balanced.ensemble.boost import XGBoostGenerator, LightGBMGenerator
-from search_spaces.balanced.ensemble.bag import ExtraTreesGenerator
-from search_spaces.imbalanced.ensemble.bag import BalancedBaggingClassifierGenerator, BalancedRandomForestGenerator
-from utils.decorators import ExceptionWrapper
-
-from ray.tune.search.hyperopt import HyperOptSearch
-from ray.train import RunConfig
+import pandas as pd
 import ray
+from hyperopt import hp, STATUS_OK
+from imbens.ensemble import AdaCostClassifier
+from ray.tune.search import ConcurrencyLimiter
+from ray.tune.search.hyperopt import HyperOptSearch
+from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score, recall_score, \
+    precision_score
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 
-from .runner import AutoMLRunner
-
+from search_spaces.balanced.ensemble.bag import ExtraTreesGenerator
+from search_spaces.balanced.ensemble.boost import XGBoostGenerator, LightGBMGenerator
+from search_spaces.imbalanced.ensemble.bag import BalancedRandomForestGenerator, BalancedBaggingClassifierGenerator
+from search_spaces.imbalanced.ensemble.boost import AdaReweightedGenerator
 
 logger = logging.getLogger(__name__)
-
-class RayTuner:
-    @staticmethod
-    def trainable(config):
-        trial_result = ImbaExperimentRunner.compute_metric_score(
-            config['search_configurations'],
-            config['metric'],
-            config['X'],
-            config['y'])
-        ray.train.report(trial_result)
 
 
 #TODO: use ray.tune.Trainable directly
@@ -55,15 +36,23 @@ class RayTuner:
 #             self.X,
 #             self.y)
 #         return {"loss": trial_result['loss']}
+class RayTuner:
+    @staticmethod
+    def trainable(config):
+        trial_result = AutoML.compute_metric_score(
+            config['search_configurations'],
+            config['metric'],
+            config['X'],
+            config['y'])
+        ray.train.report(trial_result)
 
+class AutoML:
+    def __init__(self, metric, n_evals=70):
+        self._metric = metric
+        self._n_evals = n_evals
 
-class ImbaExperimentRunner(AutoMLRunner):
-    def __init__(self, metrics):
-        super()._configure_environment()
-        super().__init__(metrics)
-
-    def _configure_environment(self):
         ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+
 
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
@@ -81,28 +70,33 @@ class ImbaExperimentRunner(AutoMLRunner):
 
         return {'loss': -loss_value, 'status': STATUS_OK}
 
-    @ExceptionWrapper.log_exception
     def fit(
-            self,
-            X_train: Union[np.ndarray, pd.DataFrame],
-            y_train: Union[np.ndarray, pd.Series],
-            metric_name: str,
-            target_label: str,
-            dataset_name: str,
-            n_evals: int) -> None:
-
-        if metric_name == 'f1':
+        self,
+        X: Union[np.ndarray, pd.DataFrame],
+        y: Union[np.ndarray, pd.Series],
+    ):
+        metric: Callable
+        if self._metric == 'f1':
             metric = f1_score
-        elif metric_name == 'balanced_accuracy':
+        elif self._metric == 'balanced_accuracy':
             metric = balanced_accuracy_score
-        elif metric_name == 'average_precision':
+        elif self._metric == 'average_precision':
             metric = average_precision_score
-        elif metric_name == 'recall':
+        elif self._metric == 'recall':
             metric = recall_score
-        elif metric_name == 'precision':
+        elif self._metric == 'precision':
             metric = precision_score
         else:
-            raise ValueError(f"Metric {metric_name} is not supported.")
+            raise ValueError(f"Metric {self._metric} is not supported.")
+
+        dataset_size_in_mb = int(pd.DataFrame(X).memory_usage(deep=True).sum() / (1024 ** 2))
+        logger.info(f"Dataset size: {dataset_size_in_mb} mb.")
+
+        n_evals = self._n_evals
+        if dataset_size_in_mb > 50:
+            n_evals //= 4
+        elif dataset_size_in_mb > 5:
+            n_evals //= 3
 
         logger.info(f"Number of optimization search trials: {n_evals}.")
 
@@ -117,8 +111,8 @@ class ImbaExperimentRunner(AutoMLRunner):
         search_configurations = hp.choice("search_configurations", search_space)
 
         ray_configuration = {
-            'X': X_train,
-            'y': y_train,
+            'X': X,
+            'y': y,
             'metric': metric,
             'search_configurations': search_configurations
         }
@@ -145,44 +139,8 @@ class ImbaExperimentRunner(AutoMLRunner):
             #         checkpoint_at_end=False
             #     )
             # )
-                # reuse_actors=True),
+            # reuse_actors=True),
             # param_space=ray_configuration
         )
 
-        results = tuner.fit()
-
-        best_trial = results.get_best_result(metric='loss', mode='min')
-        assert best_trial is not None
-
-        best_trial_metrics = getattr(best_trial, 'metrics')
-        assert best_trial_metrics is not None
-
-        logger.info(f"Training on dataset {dataset_name} successfully finished.")
-
-        best_validation_loss = best_trial_metrics.get('loss')
-        assert best_validation_loss is not None
-
-        best_algorithm_configuration = best_trial_metrics.get('config').get('search_configurations')
-        assert best_algorithm_configuration is not None
-
-        best_model_class = best_algorithm_configuration.get('model_class')
-        assert best_model_class is not None
-
-        best_algorithm_configuration.pop('model_class')
-
-        best_model = best_model_class(**best_algorithm_configuration)
-
-        val_losses = {best_model: best_validation_loss}
-        self._log_val_loss_alongside_model_class(val_losses)
-
-        best_model.fit(X_train, y_train)
-
-        self._fitted_model = best_model
-
-    @ExceptionWrapper.log_exception
-    def predict(self, X_test):
-        if self._fitted_model is None:
-            raise NotFittedError()
-
-        predictions = self._fitted_model.predict(X_test)
-        return predictions
+        return tuner.fit()

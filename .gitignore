@@ -9,7 +9,7 @@ pyproject.toml
 
 AGModels/
 AutogluonModels/
-experiment/AutogluonModels/
+benchmark/AutogluonModels/
 datasets/
 InstanceSpace-master/
 imbalanced-ensemble/

@@ -23,8 +23,8 @@ import torch
 import logging
 import pickle
 
-from experiment.benchmark import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
-from experiment.runner import AutoMLRunner
+from benchmark.repository import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from benchmark.runner import AutoMLRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.linear_model import LogisticRegression
 
@@ -66,9 +66,7 @@ class AutoGluonExperimentRunner(AutoMLRunner):
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
         target_label: str,
-        dataset_name: str,
-        n_evals: int
-    ) -> None:
+        dataset_name: str) -> None:
         if metric_name  in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:
             self._metric_automl_arg = metric_name
         else:

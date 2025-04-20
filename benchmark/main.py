@@ -81,13 +81,13 @@ class ExperimentMain:
                     Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
                     """)
 
-            from experiment.autogluon import AutoGluonExperimentRunner
+            from benchmark.autogluon import AutoGluonExperimentRunner
             automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metrics=metrics)
         elif automl == 'imba':
-            from experiment.imba import ImbaExperimentRunner
+            from benchmark.imba import ImbaExperimentRunner
             automl_runner = ImbaExperimentRunner(metrics)
         elif automl == 'flaml':
-            from experiment.flaml_automl import FLAMLExperimentRunner
+            from benchmark.flaml_automl import FLAMLExperimentRunner
             automl_runner = FLAMLExperimentRunner(metrics)
         else:
             raise ValueError(

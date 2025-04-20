@@ -17,7 +17,7 @@ from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, 
     precision_recall_curve, auc, average_precision_score
 from sklearn.preprocessing import LabelEncoder
 
-from experiment.benchmark import FittedModel, ZenodoExperimentRunner
+from benchmark.repository import FittedModel, ZenodoExperimentRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.model_selection import train_test_split as tts
 from ray.tune import logger as ray_logger
@@ -51,8 +51,7 @@ class AutoMLRunner(ABC):
             y_train: Union[np.ndarray, pd.Series],
             metric_name: str,
             target_label: str,
-            dataset_name: str,
-            n_evals: int):
+            dataset_name: str):
         raise NotImplementedError()
 
     def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
@@ -146,17 +145,9 @@ class AutoMLRunner(ABC):
             number_of_train_instances_by_class = Counter(y_train)
             logger.info(number_of_train_instances_by_class)
 
-            dataset_size_in_mb = int(pd.DataFrame(X_train).memory_usage(deep=True).sum() / (1024 ** 2))
-            logger.info(f"Dataset size: {dataset_size_in_mb} mb.")
-
-            # if dataset_size_in_mb > 50:
-            #     n_evals //= 4
-            # elif dataset_size_in_mb > 5:
-            #     n_evals //= 3
-
             for metric in self._metrics:
                 start_time = time.time()
-                self.fit(X_train, y_train, metric, task.target_label, task.name, n_evals)
+                self.fit(X_train, y_train, metric, task.target_label, task.name)
                 self.examine_quality('time_passed', start_time=start_time)
 
                 y_predictions = self.predict(X_test)
