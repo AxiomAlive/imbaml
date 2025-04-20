@@ -146,8 +146,13 @@ class AutoMLRunner(ABC):
             number_of_train_instances_by_class = Counter(y_train)
             logger.info(number_of_train_instances_by_class)
 
-            # estimated_dataset_size_in_memory = y_train.memory_usage(deep=True) / (1024 ** 2)
-            # logger.info(f"Dataset size: {estimated_dataset_size_in_memory}")
+            dataset_size_in_mb = int(pd.DataFrame(X_train).memory_usage(deep=True).sum() / (1024 ** 2))
+            logger.info(f"Dataset size: {dataset_size_in_mb} mb.")
+
+            # if dataset_size_in_mb > 50:
+            #     n_evals //= 4
+            # elif dataset_size_in_mb > 5:
+            #     n_evals //= 3
 
             for metric in self._metrics:
                 start_time = time.time()

@@ -18,7 +18,7 @@ class ExperimentMain:
         parser = argparse.ArgumentParser()
         parser.add_argument('--automl', action='store', dest='automl', default='imba')
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
-        parser.add_argument('--preset', action='store', dest='preset', default=None)
+        parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
         parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
         parser.add_argument('--metrics', action='store', dest='metric', default='f1')
 
@@ -57,6 +57,7 @@ class ExperimentMain:
         logging_handlers = [
             logging.StreamHandler(stream=sys.stdout),
         ]
+
         if log_to_filesystem:
             Path(log_filepath).mkdir(parents=True, exist_ok=True)
             log_filepath += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'
@@ -69,7 +70,7 @@ class ExperimentMain:
         )
 
         if automl == 'ag':
-            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', None]:
+            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
                 raise ValueError(
                     """
                     Invalid --preset option.
