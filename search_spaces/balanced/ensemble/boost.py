@@ -12,10 +12,6 @@ from imbens.ensemble.reweighting import AdaUBoostClassifier
 from imblearn.ensemble import BalancedRandomForestClassifier, RUSBoostClassifier, EasyEnsembleClassifier
 from lightgbm import LGBMClassifier
 from matplotlib import pyplot as plt
-from openml import flows as openml_flows
-from openml import runs as openml_runs
-from openml import tasks as openml_tasks
-from openml import utils as openml_utils
 from abc import ABC, abstractmethod
 import numpy as np
 from hyperopt import hp

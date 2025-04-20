@@ -5,3 +5,6 @@ openml==0.14.2
 ray==2.40.0
 scikit-learn==1.5.1
 xgboost-cpu==3.0.0
+fsspec==2025.3.2
+tensorboardX==2.6.2.2
+lightgbm==4.3.0
