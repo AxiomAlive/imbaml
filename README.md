@@ -1,5 +1,5 @@
 <h2>ImbaML: Configuration-free Imbalanced Learning</h2>
-<div>
+<div align="center">
 The long-term goal of the project is to facilitate automated design of machine learning pipelines in the case of imbalanced distribution of target classes.
 <br>
 <br>
@@ -14,13 +14,13 @@ Benchmark experiments are available for [Auto-gluon](https://github.com/autogluo
 ### Prerequisites
 
 1. Python interpreter 3.10.
-2. Installation of requirements.
+2. Installation of requirements for each specific AutoML.
 
 ### Usage example
 
 To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/imblearn.datasets.fetch_datasets.html#imblearn.datasets.fetch_datasets) just type in the terminal:
 ```
-./experiment.sh
+./benchmark.sh
 ```
 
 By default, benchmark for ImbaML will be run.<br/> 
