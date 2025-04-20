@@ -40,28 +40,32 @@ class ExperimentMain:
                     Options available: ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision'].
                     """)
 
-        log_filepath = 'logs/'
-        if automl == 'ag':
-            log_filepath += 'AutoGluon/'
-        elif automl == 'imba':
-            log_filepath += 'Imba/'
-        elif automl == 'flaml':
-            log_filepath += 'FLAML/'
-        else:
-            raise ValueError(
-                """
-                Invalid --automl option.
-                Options available: ['imba', 'ag', 'flaml'].
-                """)
-
         logging_handlers = [
             logging.StreamHandler(stream=sys.stdout),
         ]
 
         if log_to_filesystem:
+            log_filepath = 'logs/'
+            if automl == 'ag':
+                log_filepath += 'AutoGluon/'
+            elif automl == 'imba':
+                log_filepath += 'Imba/'
+            elif automl == 'flaml':
+                log_filepath += 'FLAML/'
+            else:
+                raise ValueError(
+                    """
+                    Invalid --automl option.
+                    Options available: ['imba', 'ag', 'flaml'].
+                    """)    
+
+                  
             Path(log_filepath).mkdir(parents=True, exist_ok=True)
             log_filepath += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'
             logging_handlers.append(logging.FileHandler(filename=log_filepath, encoding='utf-8', mode='w'))
+        
+        import importlib
+        importlib.reload(logging)
 
         logging.basicConfig(
             level=logging.INFO,
