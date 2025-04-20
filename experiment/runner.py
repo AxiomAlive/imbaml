@@ -17,7 +17,7 @@ from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, 
     precision_recall_curve, auc, average_precision_score
 from sklearn.preprocessing import LabelEncoder
 
-from benchmark.repository import FittedModel, ZenodoExperimentRunner
+from experiment.repository import FittedModel, ZenodoExperimentRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.model_selection import train_test_split as tts
 from ray.tune import logger as ray_logger
@@ -93,19 +93,10 @@ class AutoMLRunner(ABC):
             logger.info(pprint.pformat(f'Model class: {m}'))
 
     @ExceptionWrapper.log_exception
-    def run(self, n_evals: Optional[int] = None):
-        if n_evals is not None:
-            self._n_evals = n_evals
-
+    def run(self):
         for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return
-
-            n_evals = self._n_evals
-            if task.id in [9, 23]:
-                n_evals //= 3
-            elif task.id == 26:
-                n_evals //= 4
 
             if isinstance(task.X, np.ndarray) or isinstance(task.X, pd.DataFrame):
                 #     label_encoder = LabelEncoder()

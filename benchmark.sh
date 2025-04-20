@@ -49,7 +49,7 @@ run_experiment() {
     source devenv/bin/activate
   fi
 
-  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --log_to_filesystem="$log_to_filesystem" --preset="$preset" --metrics="${metrics[*]}"
+  "$VIRTUAL_ENV"/bin/python -m benchmark.main --automl="$automl" --log_to_filesystem="$log_to_filesystem" --preset="$preset" --metrics="${metrics[*]}"
 }
 
 

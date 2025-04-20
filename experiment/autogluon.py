@@ -23,8 +23,8 @@ import torch
 import logging
 import pickle
 
-from benchmark.repository import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
-from benchmark.runner import AutoMLRunner
+from experiment.repository import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from experiment.runner import AutoMLRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.linear_model import LogisticRegression
 

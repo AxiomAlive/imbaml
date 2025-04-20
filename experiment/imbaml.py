@@ -30,12 +30,12 @@ from imbaml.main import AutoML
 logger = logging.getLogger(__name__)
 
 class ImbaExperimentRunner(AutoMLRunner):
-    # def __init__(self, metrics):
-    #     super()._configure_environment()
-    #     super().__init__(metrics)
-    #
-    # def _configure_environment(self):
-    #     ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+    def __init__(self, metrics):
+        super()._configure_environment()
+        super().__init__(metrics)
+
+    def _configure_environment(self):
+        ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
 
     @ExceptionWrapper.log_exception
     def fit(
@@ -46,9 +46,9 @@ class ImbaExperimentRunner(AutoMLRunner):
         target_label: str,
         dataset_name: str
     ) -> None:
-
         automl = AutoML(metric=metric_name)
-        results = automl.fit(X_train, y_train)
+
+        results = automl.fit(X_train, y_train, re_init=False)
 
         best_trial = results.get_best_result(metric='loss', mode='min')
         assert best_trial is not None

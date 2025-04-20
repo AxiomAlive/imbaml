@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import f1_score
 
-from benchmark.runner import AutoMLRunner
+from experiment.runner import AutoMLRunner
 from flaml import AutoML
 
 

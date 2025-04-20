@@ -51,9 +51,6 @@ class AutoML:
         self._metric = metric
         self._n_evals = n_evals
 
-        ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
-
-
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
         hyper_parameters = hyper_parameters.copy()
@@ -74,7 +71,11 @@ class AutoML:
         self,
         X: Union[np.ndarray, pd.DataFrame],
         y: Union[np.ndarray, pd.Series],
+        re_init=True
     ):
+        if re_init:
+            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+
         metric: Callable
         if self._metric == 'f1':
             metric = f1_score
