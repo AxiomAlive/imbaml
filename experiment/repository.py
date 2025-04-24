@@ -34,7 +34,7 @@ class BenchmarkExperimentRunner(ABC):
         self._id_counter = itertools.count(start=1)
 
     @abstractmethod
-    def define_tasks(self, task_range: Optional[Tuple[int, ...]] = None):
+    def define_tasks(self, task_range: Optional[List[int, ...]] = None):
         raise NotImplementedError()
 
     @abstractmethod
@@ -48,21 +48,21 @@ class BenchmarkExperimentRunner(ABC):
 class ZenodoExperimentRunner(BenchmarkExperimentRunner):
     def __init__(self):
         super().__init__()
-        self.__datasets = fetch_datasets(data_home='datasets/imbalanced', verbose=True)
+        self._datasets = fetch_datasets(data_home='datasets/imbalanced', verbose=True)
 
         os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
         os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
         os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
 
     def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
-        for i, (dataset_name, dataset_data) in enumerate(self.__datasets.items()):
+        for i, (dataset_name, dataset_data) in enumerate(self._datasets.items()):
             if i + 1 == task_id:
                 return Dataset(id=next(self._id_counter), name=dataset_name, X=dataset_data.get('data'),
                                y=dataset_data.get('target'))
 
-    def define_tasks(self, task_range: Optional[Tuple[int, ...]] = None):
+    def define_tasks(self, task_range: Optional[List[int, ...]] = None):
         if task_range is None:
-            task_range = tuple(range(1, len(self.__datasets.keys()) + 1))
+            task_range = range(1, len(self._datasets.keys()) + 1)
             logger.info(task_range)
         for i in task_range:
             self._tasks.append(self.load_dataset(i))
@@ -84,7 +84,7 @@ class OpenMLExperimentRunner(BenchmarkExperimentRunner):
         super().__init__()
 
         import openml
-        openml.config.set_root_cache_directory("./openml_cache")
+        openml.config.set_root_cache_directory("openml_cache")
 
     def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
         try:
@@ -104,7 +104,7 @@ class OpenMLExperimentRunner(BenchmarkExperimentRunner):
         return Dataset(id=next(self._id_counter), name=dataset.name, target_label=dataset.default_target_attribute, X=X,
                        y=y)
 
-    def define_tasks(self, task_range: Tuple[int, ...] = None):
+    def define_tasks(self, task_range: List[int, ...] = None):
         self._tasks = []
         benchmark_suite = openml.study.get_suite(suite_id=271)
 
