@@ -34,7 +34,7 @@ class BenchmarkExperimentRunner(ABC):
         self._id_counter = itertools.count(start=1)
 
     @abstractmethod
-    def define_tasks(self, task_range: Optional[List[int, ...]] = None):
+    def define_tasks(self, task_range: Optional[List[int]] = None):
         raise NotImplementedError()
 
     @abstractmethod
@@ -60,7 +60,7 @@ class ZenodoExperimentRunner(BenchmarkExperimentRunner):
                 return Dataset(id=next(self._id_counter), name=dataset_name, X=dataset_data.get('data'),
                                y=dataset_data.get('target'))
 
-    def define_tasks(self, task_range: Optional[List[int, ...]] = None):
+    def define_tasks(self, task_range: Optional[List[int]] = None):
         if task_range is None:
             task_range = range(1, len(self._datasets.keys()) + 1)
             logger.info(task_range)
