@@ -1,9 +1,9 @@
 <h2>ImbaML: Configuration-free Imbalanced Learning</h2>
-<div align="center">
 The long-term goal of the project is to facilitate automated design of machine learning pipelines in the case of imbalanced distribution of target classes.
 <br>
-<br>
-<img src="https://raw.githubusercontent.com/AxiomAlive/ImbaML/master/.github/assets/imbalanced-learning.png">
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/AxiomAlive/ImbaML/master/.github/assets/logo.png" height="250">
 </div>
 
 ### Project status
