@@ -57,8 +57,11 @@ class ZenodoExperimentRunner(BenchmarkExperimentRunner):
     def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
         for i, (dataset_name, dataset_data) in enumerate(self._datasets.items()):
             if i + 1 == task_id:
-                return Dataset(id=next(self._id_counter), name=dataset_name, X=dataset_data.get('data'),
-                               y=dataset_data.get('target'))
+                return Dataset(
+                    id=next(self._id_counter),
+                    name=dataset_name,
+                    X=dataset_data.get('data'),
+                    y=dataset_data.get('target'))
 
     def define_tasks(self, task_range: Optional[List[int]] = None):
         if task_range is None:
@@ -101,8 +104,12 @@ class OpenMLExperimentRunner(BenchmarkExperimentRunner):
             logger.error(pprint.pformat(traceback.format_exception(type(exc), exc, exc.__traceback__)))
             return None
 
-        return Dataset(id=next(self._id_counter), name=dataset.name, target_label=dataset.default_target_attribute, X=X,
-                       y=y)
+        return Dataset(
+            id=next(self._id_counter),
+            name=dataset.name,
+            target_label=dataset.default_target_attribute,
+            X=X,
+            y=y)
 
     def define_tasks(self, task_range: List[int] = None):
         self._tasks = []

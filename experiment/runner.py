@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import pprint
 import time
@@ -17,6 +18,7 @@ from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, 
     precision_recall_curve, auc, average_precision_score
 from sklearn.preprocessing import LabelEncoder
 
+from experiment.preprocessing import DatasetPreprocessor
 from experiment.repository import FittedModel, ZenodoExperimentRunner
 from utils.decorators import ExceptionWrapper
 from sklearn.model_selection import train_test_split as tts
@@ -31,7 +33,6 @@ class AutoMLRunner(ABC):
         self._benchmark_runner = ZenodoExperimentRunner()
         self._n_evals = 70
         self._fitted_model: FittedModel = None
-
         self._configure_environment()
 
     @property
@@ -41,7 +42,6 @@ class AutoMLRunner(ABC):
     def _configure_environment(self):
         np.random.seed(42)
         logger.info("Set seed to 42.")
-
         logger.info("Prepared environment.")
 
     @abstractmethod
@@ -61,55 +61,26 @@ class AutoMLRunner(ABC):
         predictions = self._fitted_model.predict(X_test)
         return predictions
 
-    def _make_imbalance(self, X_train, y_train, class_belongings, pos_label) -> Tuple[Union[pd.DataFrame, np.ndarray], Union[pd.DataFrame, np.ndarray]]:
-        is_dataset_initially_imbalanced = True
-        number_of_positives = class_belongings.get(pos_label)
-
-        proportion_of_positives = number_of_positives / len(y_train)
-
-        # For extreme case - 0.01, for moderate - 0.2, for mild - 0.4.
-        if proportion_of_positives > 0.01:
-            coefficient = 0.01
-            updated_number_of_positives = int(coefficient * len(y_train))
-            if len(str(updated_number_of_positives)) < 2:
-                logger.warning(f"Number of positive class instances is too low.")
-            else:
-                class_belongings[pos_label] = updated_number_of_positives
-                is_dataset_initially_imbalanced = False
-
-        if not is_dataset_initially_imbalanced:
-            X_train, y_train = make_imbalance(
-                X_train,
-                y_train,
-                sampling_strategy=class_belongings)
-            logger.info("Imbalancing applied.")
-
-        return X_train, y_train
-
     @final
     def _log_val_loss_alongside_model_class(self, losses):
         for m, l in losses.items():
-            logger.info(f"Validation loss: {float(l):.3f}")
+            logger.info(f"Validation loss: {abs(float(l)):.3f}")
             logger.info(pprint.pformat(f'Model class: {m}'))
 
     @ExceptionWrapper.log_exception
-    def run(self):
+    def run(self) -> None:
         for task in self._benchmark_runner.get_tasks():
             if task is None:
                 return
 
             if isinstance(task.X, np.ndarray) or isinstance(task.X, pd.DataFrame):
-                #     label_encoder = LabelEncoder()
-                #     encoded_y = label_encoder.fit_transform(task.y)
-                #     X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(task.X, encoded_y)
-                # elif isinstance(task.X, pd.DataFrame):
-                preprocessed_data = self.preprocess_data(task.X, task.y.squeeze())
+                preprocessor = DatasetPreprocessor()
+                preprocessed_data = preprocessor.preprocess_data(task.X, task.y.squeeze())
 
-                if preprocessed_data is None:
-                    return
+                assert preprocessed_data is not None
 
                 X, y = preprocessed_data
-                X_train, X_test, y_train, y_test = self.split_data_on_train_and_test(X, y.squeeze())
+                X_train, X_test, y_train, y_test = preprocessor.split_data_on_train_and_test(X, y.squeeze())
             else:
                 raise TypeError(f"pd.DataFrame or np.ndarray expected. Got: {type(task.X)}")
 
@@ -120,18 +91,16 @@ class AutoMLRunner(ABC):
             logger.info(class_belongings)
 
             if len(class_belongings) > 2:
-                logger.info("Multiclass problems currently not supported.")
-                return
+                raise ValueError("Multiclass problems currently not supported.")
 
             iterator_of_class_belongings = iter(sorted(class_belongings))
             *_, positive_class_label = iterator_of_class_belongings
             logger.info(f"Positive class label: {positive_class_label}")
 
-            number_of_positives = class_belongings.get(positive_class_label, None)
+            number_of_positives = class_belongings.get(positive_class_label)
 
             if number_of_positives is None:
-                logger.error("Unknown positive class label.")
-                return
+                raise ValueError("Unknown positive class label.")
 
             number_of_train_instances_by_class = Counter(y_train)
             logger.info(number_of_train_instances_by_class)
@@ -139,6 +108,8 @@ class AutoMLRunner(ABC):
             for metric in self._metrics:
                 start_time = time.time()
                 self.fit(X_train, y_train, metric, task.target_label, task.name)
+                logger.info(f"Training on dataset (id={task.id}, name={task.name}) successfully finished.")
+
                 self.examine_quality('time_passed', start_time=start_time)
 
                 y_predictions = self.predict(X_test)
@@ -195,41 +166,3 @@ class AutoMLRunner(ABC):
                     metric,
                     **compute_metric_score_kwargs)
 
-    def preprocess_data(self, X: Union[pd.DataFrame, np.ndarray], y: Union[pd.Series, np.ndarray]) -> Optional[Tuple[pd.DataFrame, pd.Series]]:
-        if isinstance(X, pd.DataFrame):
-            X.dropna(inplace=True)
-
-        label_encoder = LabelEncoder()
-        encoded_y = label_encoder.fit_transform(y)
-
-        if isinstance(y, pd.Series):
-            y = pd.Series(encoded_y)
-        else:
-            y = encoded_y
-
-        if isinstance(X, pd.DataFrame):
-            for dataset_feature_name in X.copy():
-                dataset_feature = X.get(dataset_feature_name)
-
-                if len(dataset_feature) == 0:
-                    X.drop([dataset_feature_name], axis=1, inplace=True)
-                    continue
-                if type(dataset_feature.iloc[0]) is str:
-                    dataset_feature_encoded = pd.get_dummies(dataset_feature, prefix=dataset_feature_name)
-                    X.drop([dataset_feature_name], axis=1, inplace=True)
-                    X = pd.concat([X, dataset_feature_encoded], axis=1).reset_index(drop=True)
-
-            if len(X.index) != len(y.index):
-                logger.warning(f"X index: {X.index} and y index {y.index}.")
-                logger.error("Unexpected X size.")
-                return None
-
-        return X, y
-
-    def split_data_on_train_and_test(self, X, y):
-        return tts(
-            X,
-            y,
-            random_state=42,
-            test_size=0.2,
-            stratify=y)

@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 from typing import Optional
 
+import pandas as pd
 from setuptools import setup
 
 import numpy as np
@@ -83,7 +84,7 @@ class ExperimentMain:
             from experiment.autogluon import AutoGluonExperimentRunner
             automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metrics=metrics)
         elif automl == 'imba':
-            from experiment.imbaml import ImbaExperimentRunner
+            from experiment.imba import ImbaExperimentRunner
             automl_runner = ImbaExperimentRunner(metrics)
         elif automl == 'flaml':
             from experiment.fast_lightweight_automl import FLAMLExperimentRunner

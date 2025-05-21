@@ -50,7 +50,7 @@ class AutoGluonExperimentRunner(AutoMLRunner):
 
     # TODO: check how to apply decorators for abstract class inheritance case.
     @ExceptionWrapper.log_exception
-    def predict(self, X_test):
+    def predict(self, X_test) -> Union[pd.Series, np.ndarray]:
         if self._fitted_model is None:
             raise NotFittedError()
 
@@ -66,7 +66,8 @@ class AutoGluonExperimentRunner(AutoMLRunner):
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
         target_label: str,
-        dataset_name: str) -> None:
+        dataset_name: str
+    ) -> None:
         if metric_name  in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:
             self._metric_automl_arg = metric_name
         else:
@@ -81,9 +82,11 @@ class AutoGluonExperimentRunner(AutoMLRunner):
                 data=np.column_stack([X_train, y_train]),
                 columns=[*X_train.columns, target_label])
 
-            autogluon_dataset_train = TabularDataset(pd.DataFrame(
+            dataset_train2 = pd.DataFrame(
                 dataset_train,
-                columns=[*X_train.columns, target_label]))
+                columns=[*X_train.columns, target_label])
+            autogluon_dataset_train = TabularDataset(dataset_train)
+            logger.info(dataset_train.equals(dataset_train2))
 
         autogluon_predictor = TabularPredictor(
             problem_type='binary',

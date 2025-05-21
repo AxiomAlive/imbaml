@@ -24,10 +24,11 @@ from ray.train import RunConfig
 import ray
 
 from .runner import AutoMLRunner
-from imbaml.main import AutoML
+from imbaml.main import Imba
 
 
 logger = logging.getLogger(__name__)
+
 
 class ImbaExperimentRunner(AutoMLRunner):
     def __init__(self, metrics):
@@ -46,29 +47,31 @@ class ImbaExperimentRunner(AutoMLRunner):
         target_label: str,
         dataset_name: str
     ) -> None:
-        automl = AutoML(metric=metric_name)
+        automl = Imba(metric=metric_name, re_init=False)
 
-        results = automl.fit(X_train, y_train, re_init=False)
+        fit_results = automl.fit(X_train, y_train)
 
-        best_trial = results.get_best_result(metric='loss', mode='min')
-        assert best_trial is not None
+        best_trial = fit_results.get_best_result(metric='loss', mode='min')
+        if best_trial is None:
+            raise ValueError("No best trial.")
 
         best_trial_metrics = getattr(best_trial, 'metrics')
-        assert best_trial_metrics is not None
-
-        logger.info(f"Training on dataset {dataset_name} successfully finished.")
+        if best_trial_metrics is None:
+            raise ValueError("No best trial metrics.")
 
         best_validation_loss = best_trial_metrics.get('loss')
-        assert best_validation_loss is not None
+        if best_validation_loss is None:
+            raise ValueError("No best trial validation loss.")
 
         best_algorithm_configuration = best_trial_metrics.get('config').get('search_configurations')
-        assert best_algorithm_configuration is not None
+        if best_algorithm_configuration is None:
+            raise ValueError("No best trial algorithm configuration.")
 
         best_model_class = best_algorithm_configuration.get('model_class')
-        assert best_model_class is not None
+        if best_model_class is None:
+            raise ValueError("No best trial model class.")
 
         best_algorithm_configuration.pop('model_class')
-
         best_model = best_model_class(**best_algorithm_configuration)
 
         val_losses = {best_model: best_validation_loss}

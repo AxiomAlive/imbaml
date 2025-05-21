@@ -6,6 +6,7 @@ import pandas as pd
 import ray
 from hyperopt import hp, STATUS_OK
 from imbens.ensemble import AdaCostClassifier
+from ray.tune import ResultGrid
 from ray.tune.search import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
 from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score, recall_score, \
@@ -39,17 +40,23 @@ logger = logging.getLogger(__name__)
 class RayTuner:
     @staticmethod
     def trainable(config):
-        trial_result = AutoML.compute_metric_score(
+        trial_result = Imba.compute_metric_score(
             config['search_configurations'],
             config['metric'],
             config['X'],
             config['y'])
         ray.train.report(trial_result)
 
-class AutoML:
-    def __init__(self, metric, n_evals=70):
+
+class Imba:
+    def __init__(self, metric, n_evals=70, re_init=True):
         self._metric = metric
         self._n_evals = n_evals
+        if re_init:
+            self._re_init()
+
+    def _re_init(self):
+        ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
 
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
@@ -70,12 +77,8 @@ class AutoML:
     def fit(
         self,
         X: Union[np.ndarray, pd.DataFrame],
-        y: Union[np.ndarray, pd.Series],
-        re_init=True
-    ):
-        if re_init:
-            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
-
+        y: Union[np.ndarray, pd.Series]
+    ) -> ResultGrid:
         metric: Callable
         if self._metric == 'f1':
             metric = f1_score
