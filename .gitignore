@@ -16,7 +16,7 @@ imbalanced-ensemble/
 logs/
 openml_cache/
 test/
-search_spaces/classifiers_tpot/
+imbaml/search_spaces/classifiers_tpot/
 stash/
 
 __pycache__/

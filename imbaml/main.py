@@ -15,8 +15,8 @@ from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 from search_spaces.balanced.ensemble.bag import ExtraTreesGenerator
 from search_spaces.balanced.ensemble.boost import XGBoostGenerator, LightGBMGenerator
-from search_spaces.imbalanced.ensemble.bag import BalancedRandomForestGenerator, BalancedBaggingClassifierGenerator
-from search_spaces.imbalanced.ensemble.boost import AdaReweightedGenerator
+from imbaml.search_spaces.imbalanced.ensemble.bag import BalancedRandomForestGenerator, BalancedBaggingClassifierGenerator
+from imbaml.search_spaces.imbalanced.ensemble.boost import AdaReweightedGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class RayTuner:
 
 
 class Imba:
-    def __init__(self, metric, n_evals=70, re_init=True):
+    def __init__(self, metric, n_evals=60, re_init=True):
         self._metric = metric
         self._n_evals = n_evals
         if re_init:

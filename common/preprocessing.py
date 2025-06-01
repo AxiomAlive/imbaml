@@ -40,7 +40,6 @@ class DatasetPreprocessor:
         else:
             X_encoded = X
 
-
         return X_encoded, y_encoded
 
     def split_data_on_train_and_test(
