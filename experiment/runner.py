@@ -12,7 +12,7 @@ from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, 
 
 from common.preprocessing import DatasetPreprocessor
 from experiment.repository import FittedModel, ZenodoExperimentRunner
-from utils.decorators import ExceptionWrapper
+from utils.decorators import Decorators
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class AutoMLRunner(ABC):
     def __init__(self, metrics):
         self._metrics = metrics
         self._benchmark_runner = ZenodoExperimentRunner()
-        self._n_evals = 70
+        self._n_evals = 60
         self._fitted_model: FittedModel = None
         self._configure_environment()
 
@@ -57,7 +57,7 @@ class AutoMLRunner(ABC):
             logger.info(f"Validation loss: {abs(float(l)):.3f}")
             logger.info(pprint.pformat(f'Model class: {m}'))
 
-    @ExceptionWrapper.log_exception
+    @Decorators.log_exception
     def run(self) -> None:
         for task in self._benchmark_runner.get_tasks():
             if task is None:

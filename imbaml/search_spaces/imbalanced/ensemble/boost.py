@@ -19,11 +19,10 @@ from typing import TypeVar
 from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
 
-from search_spaces import MLModelGenerator
-from search_spaces.balanced.ensemble.boost import AdaGenerator
+from imbaml.search_spaces import MLModelGenerator
+from imbaml.search_spaces.balanced.ensemble.boost import AdaGenerator
 
 logger = logging.getLogger(__name__)
-
 
 
 class AdaReweightedGenerator(AdaGenerator):

@@ -19,19 +19,16 @@ class ExperimentMain:
         parser = argparse.ArgumentParser()
         parser.add_argument('--automl', action='store', dest='automl', default='imba')
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
-        parser.add_argument('--preset', action='store', dest='preset', default='good_quality')
-        # parser.add_argument('--trials', action='store', dest='trials', type=int, default=None)
+        parser.add_argument('--autogluon_preset', action='store', dest='autogluon_preset', default='good_quality')
         parser.add_argument('--metrics', action='store', dest='metric', default='f1')
+        parser.add_argument('--sanity_check', action='store', dest='sanity_check', type=bool, default=False)
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
         log_to_filesystem = getattr(args, 'log_to_filesystem')
-        autogluon_preset = getattr(args, 'preset')
-        # trials = getattr(args, 'trials')
+        ag_preset = getattr(args, 'autogluon_preset')
         metrics = getattr(args, 'metric').split(" ")
-
-        # if trials is not None and trials == 0:
-        #     trials = None
+        sanity_check = getattr(args, 'sanity_check')
 
         for metric_name in metrics:
             if metric_name not in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:
@@ -73,8 +70,11 @@ class ExperimentMain:
             handlers=logging_handlers
         )
 
-        if automl == 'ag':
-            if autogluon_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
+        if automl == 'imba':
+            from experiment.imba import ImbaExperimentRunner
+            automl_runner = ImbaExperimentRunner(metrics, is_sanity_check=sanity_check)
+        elif automl == 'ag':
+            if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
                 raise ValueError(
                     """
                     Invalid --preset option.
@@ -82,10 +82,7 @@ class ExperimentMain:
                     """)
 
             from experiment.autogluon import AutoGluonExperimentRunner
-            automl_runner = AutoGluonExperimentRunner(preset=autogluon_preset, metrics=metrics)
-        elif automl == 'imba':
-            from experiment.imba import ImbaExperimentRunner
-            automl_runner = ImbaExperimentRunner(metrics)
+            automl_runner = AutoGluonExperimentRunner(preset=ag_preset, metrics=metrics)
         elif automl == 'flaml':
             from experiment.fast_lightweight_automl import FLAMLExperimentRunner
             automl_runner = FLAMLExperimentRunner(metrics)

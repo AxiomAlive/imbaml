@@ -13,8 +13,8 @@ from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, aver
     precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 
-from search_spaces.balanced.ensemble.bag import ExtraTreesGenerator
-from search_spaces.balanced.ensemble.boost import XGBoostGenerator, LightGBMGenerator
+from imbaml.search_spaces.balanced.ensemble.bag import ExtraTreesGenerator
+from imbaml.search_spaces.balanced.ensemble.boost import XGBoostGenerator, LightGBMGenerator
 from imbaml.search_spaces.imbalanced.ensemble.bag import BalancedRandomForestGenerator, BalancedBaggingClassifierGenerator
 from imbaml.search_spaces.imbalanced.ensemble.boost import AdaReweightedGenerator
 

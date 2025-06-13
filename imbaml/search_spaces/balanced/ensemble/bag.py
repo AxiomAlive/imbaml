@@ -4,7 +4,7 @@ from hyperopt.pyll import scope
 from imblearn.ensemble import BalancedBaggingClassifier, BalancedRandomForestClassifier
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 
-from search_spaces import MLModelGenerator
+from imbaml.search_spaces import MLModelGenerator
 
 
 class RandomForestGenerator(MLModelGenerator):

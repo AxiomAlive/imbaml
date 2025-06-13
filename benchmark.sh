@@ -3,19 +3,19 @@
 run_experiment() {
   declare log_to_filesystem=true
   declare automl='imba'
-  declare preset='good_quality'
+  declare autogluon_preset='good_quality'
   declare metrics=('f1')
+  declare sanity_check=true
 
   # TODO: check for flags for comparison.
   if [[ "$*" == *"-c"* ]]; then
-    # equals to false
     unset log_to_filesystem
   fi
 
   if [[ "$*" == *"-ag"* ]]; then
     automl="ag"
   else
-    unset preset
+    unset autogluon_preset
   fi
 
   if [[ "$*" == *"-flaml"* ]]; then
@@ -39,9 +39,13 @@ run_experiment() {
   fi
 
    if [[ "$*" == *"-pr"* && "$*" == *"-rec"* ]]; then
-        metrics[0]="precision"
-        metrics[1]="recall"
-    fi
+      metrics[0]="precision"
+      metrics[1]="recall"
+  fi
+
+  if [[ "$*" != *"-test"* ]]; then
+    unset sanity_check
+  fi
 
   if [[ "$automl" == "imba" ]] || [[ ! -d ./devenv ]]; then
     source env/bin/activate
@@ -49,7 +53,13 @@ run_experiment() {
     source devenv/bin/activate
   fi
 
-  "$VIRTUAL_ENV"/bin/python -m experiment.main --automl="$automl" --log_to_filesystem="$log_to_filesystem" --preset="$preset" --metrics="${metrics[*]}"
+
+  "$VIRTUAL_ENV"/bin/python -m experiment.main\
+  --automl="$automl"\
+  --log_to_filesystem="$log_to_filesystem"\
+  --autogluon_preset="$autogluon_preset"\
+  --metrics="${metrics[*]}"\
+  --sanity_check="$sanity_check"
 }
 
 

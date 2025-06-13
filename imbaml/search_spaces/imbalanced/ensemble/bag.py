@@ -4,8 +4,8 @@ from hyperopt.pyll import scope
 from imblearn.ensemble import BalancedBaggingClassifier, BalancedRandomForestClassifier
 from sklearn.ensemble import RandomForestClassifier
 
-from search_spaces import MLModelGenerator
-from search_spaces.balanced.ensemble.bag import RandomForestGenerator
+from imbaml.search_spaces import MLModelGenerator
+from imbaml.search_spaces.balanced.ensemble.bag import RandomForestGenerator
 
 
 class BalancedBaggingClassifierGenerator(MLModelGenerator):

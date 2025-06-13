@@ -18,8 +18,9 @@ from hyperopt import hp
 from typing import TypeVar
 from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
+from utils.decorators import Decorators
 
-from search_spaces import MLModelGenerator
+from imbaml.search_spaces import MLModelGenerator
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class AdaGenerator(MLModelGenerator):
         param_map.update({'model_class': model_class if model_class is not None else AdaBoostClassifier})
 
         return param_map
+
 
 class XGBoostGenerator(MLModelGenerator):
     max_depth = scope.int(hp.uniform('xgb.max_depth', 1, 11))
@@ -60,6 +62,7 @@ class LightGBMGenerator(XGBoostGenerator):
     boosting_type = hp.choice('lgbm.boosting_type', ['gbdt', 'dart', 'goss'])
 
     @classmethod
+    @Decorators.remove_unnecessary_hp
     def generate_algorithm_configuration_space(cls, model_class=None):
         param_map = super().generate_algorithm_configuration_space()
         param_map.update({'model_class': LGBMClassifier})

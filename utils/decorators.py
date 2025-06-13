@@ -1,13 +1,13 @@
+import inspect
 import logging
 import pprint
 import traceback
 from typing import Callable
 
-
 logger = logging.getLogger(__name__)
 
 
-class ExceptionWrapper:
+class Decorators:
     @staticmethod
     def log_exception(f: Callable) -> Callable:
         def _log_exception(*args, **kwargs):
@@ -17,3 +17,13 @@ class ExceptionWrapper:
                 logger.error(pprint.pformat(traceback.format_exception(type(exc), exc, exc.__traceback__   )))
                 return None
         return _log_exception
+
+    @staticmethod
+    def remove_unnecessary_hp(f) -> Callable:
+        def _remove_unnecessary_hp(*args, **kwargs):
+            for arg in args:
+                if inspect.isclass(arg):
+                    arg.colsample_bylevel = None
+                    return f(*args, **kwargs)
+        return _remove_unnecessary_hp
+

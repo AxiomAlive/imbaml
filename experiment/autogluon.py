@@ -25,7 +25,7 @@ import pickle
 
 from experiment.repository import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
 from experiment.runner import AutoMLRunner
-from utils.decorators import ExceptionWrapper
+from utils.decorators import Decorators
 from sklearn.linear_model import LogisticRegression
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class AutoGluonExperimentRunner(AutoMLRunner):
         self._preset = preset
 
     # TODO: check how to apply decorators for abstract class inheritance case.
-    @ExceptionWrapper.log_exception
+    @Decorators.log_exception
     def predict(self, X_test) -> Union[pd.Series, np.ndarray]:
         if self._fitted_model is None:
             raise NotFittedError()
@@ -59,7 +59,7 @@ class AutoGluonExperimentRunner(AutoMLRunner):
 
         return predictions
 
-    @ExceptionWrapper.log_exception
+    @Decorators.log_exception
     def fit(
         self,
         X_train: Union[np.ndarray, pd.DataFrame],

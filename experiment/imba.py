@@ -8,7 +8,7 @@ from hyperopt import STATUS_OK, hp
 
 from sklearn.exceptions import NotFittedError
 
-from utils.decorators import ExceptionWrapper
+from utils.decorators import Decorators
 
 from ray.tune.search.hyperopt import HyperOptSearch
 import ray
@@ -21,14 +21,17 @@ logger = logging.getLogger(__name__)
 
 
 class ImbaExperimentRunner(AutoMLRunner):
-    def __init__(self, metrics):
+    def __init__(self, metrics, is_sanity_check=False):
         super()._configure_environment()
         super().__init__(metrics)
+
+        if is_sanity_check:
+            self._n_evals = 12
 
     def _configure_environment(self):
         ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
 
-    @ExceptionWrapper.log_exception
+    @Decorators.log_exception
     def fit(
         self,
         X_train: Union[np.ndarray, pd.DataFrame],
@@ -37,7 +40,7 @@ class ImbaExperimentRunner(AutoMLRunner):
         target_label: str,
         dataset_name: str
     ) -> None:
-        automl = Imba(metric=metric_name, re_init=False)
+        automl = Imba(metric=metric_name, re_init=False, n_evals=self._n_evals)
 
         fit_results = automl.fit(X_train, y_train)
 
@@ -71,7 +74,7 @@ class ImbaExperimentRunner(AutoMLRunner):
 
         self._fitted_model = best_model
 
-    @ExceptionWrapper.log_exception
+    @Decorators.log_exception
     def predict(self, X_test):
         if self._fitted_model is None:
             raise NotFittedError()
