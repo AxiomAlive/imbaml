@@ -1,7 +1,8 @@
-devenv
-env
+venv/
+env/
 
-.idea
+.idea/
+.vscode/
 *.iml
 *.lock
 *.out

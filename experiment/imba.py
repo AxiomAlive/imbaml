@@ -13,14 +13,32 @@ from utils.decorators import Decorators
 from ray.tune.search.hyperopt import HyperOptSearch
 import ray
 
-from .runner import AutoMLRunner
+from .runner import AutoMLExperimentRunner
 from imbaml.main import Imba
 
 
 logger = logging.getLogger(__name__)
 
 
-class ImbaExperimentRunner(AutoMLRunner):
+class ImbaRunner(AutoMLExperimentRunner):
+    """
+    ImbaRunner is a class that extends AutoMLExperimentRunner to perform automated machine learning pipeline design using Imba framework.
+
+    Attributes:
+        _n_evals (int): The number of evaluations to perform during fitting.
+        _fitted_model (object): The model that has been fitted.
+
+    Parameters:
+        metrics (list): A list of metrics to evaluate the models.
+        is_sanity_check (bool): A flag indicating whether to perform a sanity check, default is False.
+
+    Methods:
+        fit(X_train, y_train, metric_name, target_label, dataset_name):
+            Fits the model to the training data and logs validation loss alongside the model class.
+        
+        predict(X_test):
+            Predicts the target values for the given test data using the fitted model.
+    """
     def __init__(self, metrics, is_sanity_check=False):
         super()._configure_environment()
         super().__init__(metrics)

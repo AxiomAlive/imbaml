@@ -17,7 +17,7 @@ from utils.decorators import Decorators
 logger = logging.getLogger(__name__)
 
 
-class AutoMLRunner(ABC):
+class AutoMLExperimentRunner(ABC):
     def __init__(self, metrics):
         self._metrics = metrics
         self._benchmark_runner = ZenodoExperimentRunner()

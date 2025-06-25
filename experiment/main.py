@@ -71,8 +71,8 @@ class ExperimentMain:
         )
 
         if automl == 'imba':
-            from experiment.imba import ImbaExperimentRunner
-            automl_runner = ImbaExperimentRunner(metrics, is_sanity_check=sanity_check)
+            from experiment.imba import ImbaRunner
+            automl_runner = ImbaRunner(metrics, is_sanity_check=sanity_check)
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
                 raise ValueError(

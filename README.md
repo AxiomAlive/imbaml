@@ -13,22 +13,25 @@ Currently, only binary classification setting is implemented.
 <br/>
 <br/>
 Benchmark experiments are available for [Auto-gluon](https://github.com/autogluon/autogluon), [FLAML](https://github.com/microsoft/FLAML) and [ImbaML](https://github.com/AxiomAlive/ImbaML).
-### Prerequisites
 
-1. Python interpreter 3.10.
+### Usage
+Only Linux support has been tested. Support for Windows and MacOS is not confirmed, and you may run into bugs or a suboptimal experience.
+
+#### Prerequisites
+
+1. Python interpreter >= 3.10.
 2. Installation of requirements for each specific AutoML.
 
-### Usage example
-Only Linux support has been tested. Support for Windows and MacOS is not confirmed, and you may run into bugs or a suboptimal experience.
 
 To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/imblearn.datasets.fetch_datasets.html#imblearn.datasets.fetch_datasets) just type in the terminal:
 ```
 ./benchmark.sh
 ```
 
-By default, benchmark for ImbaML will be run.<br/> 
-To change to **Auto-Gluon** add the `-ag` argument; to change to FLAML add the `-flaml` argument. 
-<br/>
+[comment]: <> (By default, benchmark for ImbaML will be run.<br/> )
+
+[comment]: <> (To change to **Auto-Gluon** add the `-ag` argument; to change to FLAML add the `-flaml` argument. )
+
 
 ### Citation
 

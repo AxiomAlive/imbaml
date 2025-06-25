@@ -24,14 +24,14 @@ import logging
 import pickle
 
 from experiment.repository import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
-from experiment.runner import AutoMLRunner
+from experiment.runner import AutoMLExperimentRunner
 from utils.decorators import Decorators
 from sklearn.linear_model import LogisticRegression
 
 logger = logging.getLogger(__name__)
 
 
-class AutoGluonExperimentRunner(AutoMLRunner):
+class AutoGluonExperimentRunner(AutoMLExperimentRunner):
     def __init__(self, metrics, preset='good_quality'):
         super().__init__(metrics)
         self._preset = preset

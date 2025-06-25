@@ -19,11 +19,13 @@ class Decorators:
         return _log_exception
 
     @staticmethod
-    def remove_unnecessary_hp(f) -> Callable:
-        def _remove_unnecessary_hp(*args, **kwargs):
-            for arg in args:
-                if inspect.isclass(arg):
-                    arg.colsample_bylevel = None
-                    return f(*args, **kwargs)
-        return _remove_unnecessary_hp
-
+    def remove_unnecessary_hp(hp: str, parent_level: int = 1):
+        def _decorate(f) -> Callable:
+            def _remove_unnecessary_hp(*args, **kwargs):
+                for arg in args:
+                    if inspect.isclass(arg):
+                        if getattr(arg, hp, None) is not None:
+                            delattr(arg.__mro__[parent_level], hp)
+                        return f(*args, **kwargs)
+            return _remove_unnecessary_hp
+        return _decorate

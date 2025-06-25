@@ -6,23 +6,25 @@ import pandas as pd
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import f1_score
 
-from experiment.runner import AutoMLRunner
+from experiment.runner import AutoMLExperimentRunner
 from flaml import AutoML
 
 
 logger = logging.getLogger(__name__)
 
 
-class FLAMLExperimentRunner(AutoMLRunner):
+class FLAMLExperimentRunner(AutoMLExperimentRunner):
     def __init__(self, metrics):
         super().__init__(metrics)
 
-    def fit(self,
-            X_train: Union[np.ndarray, pd.DataFrame],
-            y_train: Union[np.ndarray, pd.Series],
-            metric_name: str,
-            target_label: str,
-            dataset_name: str) -> None:
+    def fit(
+        self,
+        X_train: Union[np.ndarray, pd.DataFrame],
+        y_train: Union[np.ndarray, pd.Series],
+        metric_name: str,
+        target_label: str,
+        dataset_name: str
+    ) -> None:
 
         if metric_name == 'average_precision':
             self._metric_automl_arg = 'ap'
@@ -32,7 +34,7 @@ class FLAMLExperimentRunner(AutoMLRunner):
             raise ValueError(f"Metric {metric_name} is not supported.")
 
         automl = AutoML()
-        automl.fit(X_train, y_train, task='classification', time_budget=3600, metric=self._metric_automl_arg)
+        automl.fit(X_train, y_train, task='classification', metric=self._metric_automl_arg)
 
         best_loss = automl.best_loss
         best_model = automl.best_estimator
