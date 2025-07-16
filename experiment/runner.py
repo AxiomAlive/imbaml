@@ -11,7 +11,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, average_precision_score
 
 from common.preprocessing import DatasetPreprocessor
-from experiment.repository import FittedModel, ZenodoExperimentRunner
+from experiment.repository import FittedModel, ZenodoBenchmarkRunner
 from utils.decorators import Decorators
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class AutoMLExperimentRunner(ABC):
     def __init__(self, metrics):
         self._metrics = metrics
-        self._benchmark_runner = ZenodoExperimentRunner()
+        self._benchmark_runner = ZenodoBenchmarkRunner()
         self._n_evals = 60
         self._fitted_model: FittedModel = None
         self._configure_environment()
@@ -40,7 +40,7 @@ class AutoMLExperimentRunner(ABC):
             X_train: Union[np.ndarray, pd.DataFrame],
             y_train: Union[np.ndarray, pd.Series],
             metric_name: str,
-            target_label: str,
+            target_label: Optional[str],
             dataset_name: str):
         raise NotImplementedError()
 
@@ -120,12 +120,6 @@ class AutoMLExperimentRunner(ABC):
         elif metric == 'average_precision':
             average_precision = average_precision_score(y_test, y_pred, pos_label=pos_label)
             logger.info(f"Average precision: {average_precision:.3f}")
-        elif metric == 'recall':
-            recall = recall_score(y_test, y_pred, pos_label=pos_label)
-            logger.info(f"Recall: {recall:.3f}")
-        elif metric == 'precision':
-            precision = precision_score(y_test, y_pred, pos_label=pos_label)
-            logger.info(f"Precision: {precision:.3f}")
         elif metric == 'time_passed':
             time_passed = time.time() - start_time
             logger.info(f"Time passed: {time_passed // 60} minutes.")

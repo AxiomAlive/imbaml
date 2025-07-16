@@ -2,7 +2,7 @@ from hyperopt import hp
 from hyperopt.pyll import scope
 from sklearn.neural_network import MLPClassifier
 
-from imbaml.search_spaces import EstimatorSpaceGenerator
+from imbaml.search_space import EstimatorSpaceGenerator
 
 
 class MLPClassifierGenerator(EstimatorSpaceGenerator):

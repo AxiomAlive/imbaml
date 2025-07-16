@@ -1,0 +1,18 @@
+name: "AutoGluon benchmark"
+cmd: ./benchmark.sh -ag
+inputs:
+  - benchmark.sh
+cloud-instance-types:
+  - gt4.1
+env:
+  python:
+    type: manual
+    version: 3.10
+    requirements-file: requirements.txt
+    local-paths:
+      - experiment/
+      - utils/
+      - common/
+      - imbaml/
+flags:
+  - attach-project-disk

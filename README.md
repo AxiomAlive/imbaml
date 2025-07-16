@@ -1,4 +1,5 @@
-<h3>Imba: Configuration-free Imbalanced Learning</h3>
+
+<h3>IMBAML: Configuration-free Imbalanced Learning</h3>
 
 [comment]: <> (<div align="center">)
 
@@ -12,7 +13,7 @@ The long-term goal of the project is to facilitate automated design of machine l
 Currently, only binary classification setting is implemented.
 <br/>
 <br/>
-Benchmark experiments are available for [Auto-gluon](https://github.com/autogluon/autogluon), [FLAML](https://github.com/microsoft/FLAML) and [ImbaML](https://github.com/AxiomAlive/ImbaML).
+Benchmark experiments are available for [Auto-gluon](https://github.com/autogluon/autogluon), [FLAML](https://github.com/microsoft/FLAML) and [IMBAML](https://github.com/AxiomAlive/ImbaML).
 
 ### Usage
 Only Linux support has been tested. Support for Windows and MacOS is not confirmed, and you may run into bugs or a suboptimal experience.
@@ -20,18 +21,20 @@ Only Linux support has been tested. Support for Windows and MacOS is not confirm
 #### Prerequisites
 
 1. Python interpreter >= 3.10.
-2. Installation of requirements for each specific AutoML.
+2. Virtual environment named `venv`.
+3. Installation of `requrements.txt`.
 
-
-To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/imblearn.datasets.fetch_datasets.html#imblearn.datasets.fetch_datasets) just type in the terminal:
+To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/imblearn.datasets.fetch_datasets.html#imblearn.datasets.fetch_datasets) locally just type in the terminal:
 ```
 ./benchmark.sh
 ```
+By default, benchmark for IMBAML will be run. To change to Auto-Gluon add the `-ag` argument; to change to FLAML add the `-flaml` argument. 
+<br>
+<br>
+Also, a cloud run option is available (with a `-cloud` argument) on the [Yandex Datasphere](https://datasphere.yandex.cloud/). Configuration file is `cloud.yaml`.
 
-[comment]: <> (By default, benchmark for ImbaML will be run.<br/> )
-
-[comment]: <> (To change to **Auto-Gluon** add the `-ag` argument; to change to FLAML add the `-flaml` argument. )
-
+[comment]: <> (<br>)
+[comment]: <> (An example of usage with your data is available at `example.py`.)
 
 ### Citation
 

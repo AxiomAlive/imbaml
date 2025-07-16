@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Union, Optional
 
 import pandas    as pd
 import numpy as np
@@ -14,15 +14,15 @@ from ray.tune.search.hyperopt import HyperOptSearch
 import ray
 
 from .runner import AutoMLExperimentRunner
-from imbaml.main import Imba
+from imbaml.main import Imbaml
 
 
 logger = logging.getLogger(__name__)
 
 
-class ImbaRunner(AutoMLExperimentRunner):
+class ImbamlRunner(AutoMLExperimentRunner):
     """
-    ImbaRunner is a class that extends AutoMLExperimentRunner to perform automated machine learning pipeline design using Imba framework.
+    ImbamlRunner is a class that extends AutoMLExperimentRunner to perform automated machine learning pipeline design using Imba framework.
 
     Attributes:
         _n_evals (int): The number of evaluations to perform during fitting.
@@ -39,7 +39,9 @@ class ImbaRunner(AutoMLExperimentRunner):
         predict(X_test):
             Predicts the target values for the given test data using the fitted model.
     """
-    def __init__(self, metrics, is_sanity_check=False):
+    def __init__(self, metrics=None, is_sanity_check=False):
+        if metrics is None:
+            metrics = []
         super()._configure_environment()
         super().__init__(metrics)
 
@@ -55,10 +57,10 @@ class ImbaRunner(AutoMLExperimentRunner):
         X_train: Union[np.ndarray, pd.DataFrame],
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
-        target_label: str,
+        target_label: Optional[str],
         dataset_name: str
     ) -> None:
-        automl = Imba(metric=metric_name, re_init=False, n_evals=self._n_evals)
+        automl = Imbaml(metric=metric_name, re_init=False, n_evals=self._n_evals)
 
         fit_results = automl.fit(X_train, y_train)
 

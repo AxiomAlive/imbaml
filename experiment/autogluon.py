@@ -4,7 +4,7 @@ import os
 import pprint
 import traceback
 from os import walk
-from typing import Union
+from typing import Union, Optional
 
 import arff
 import numpy as np
@@ -19,11 +19,10 @@ from sklearn.model_selection import train_test_split as tts
 from imblearn.datasets import make_imbalance
 from sklearn.preprocessing import LabelEncoder
 from collections import Counter
-import torch
 import logging
 import pickle
 
-from experiment.repository import BenchmarkExperimentRunner, OpenMLExperimentRunner, ZenodoExperimentRunner
+from experiment.repository import BenchmarkRunner, OpenMLBenchmarkRunner, ZenodoBenchmarkRunner
 from experiment.runner import AutoMLExperimentRunner
 from utils.decorators import Decorators
 from sklearn.linear_model import LogisticRegression
@@ -31,7 +30,7 @@ from sklearn.linear_model import LogisticRegression
 logger = logging.getLogger(__name__)
 
 
-class AutoGluonExperimentRunner(AutoMLExperimentRunner):
+class AutoGluonRunner(AutoMLExperimentRunner):
     def __init__(self, metrics, preset='good_quality'):
         super().__init__(metrics)
         self._preset = preset
@@ -65,7 +64,7 @@ class AutoGluonExperimentRunner(AutoMLExperimentRunner):
         X_train: Union[np.ndarray, pd.DataFrame],
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
-        target_label: str,
+        target_label: Optional[str],
         dataset_name: str
     ) -> None:
         if metric_name  in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:

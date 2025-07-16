@@ -20,7 +20,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
 from utils.decorators import Decorators
 
-from imbaml.search_spaces import EstimatorSpaceGenerator
+from imbaml.search_space import EstimatorSpaceGenerator
 
 
 logger = logging.getLogger(__name__)

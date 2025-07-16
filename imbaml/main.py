@@ -13,11 +13,11 @@ from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, aver
     precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 
-from imbaml.search_spaces.classical.ensemble.bag import ExtraTreesGenerator
-from imbaml.search_spaces.classical.ensemble.boost import XGBClassifierGenerator, LGBMClassifierGenerator
-from imbaml.search_spaces.balanced.ensemble.bag import BalancedRandomForestClassifierGenerator, BalancedBaggingClassifierGenerator
-from imbaml.search_spaces.balanced.ensemble.boost import AdaReweightedGenerator
-from imbaml.search_spaces.classical.mlp import MLPClassifierGenerator
+from imbaml.search_space.classical.ensemble.bag import ExtraTreesGenerator
+from imbaml.search_space.classical.ensemble.boost import XGBClassifierGenerator, LGBMClassifierGenerator
+from imbaml.search_space.with_balancing.ensemble.bag import BalancedRandomForestClassifierGenerator, BalancedBaggingClassifierGenerator
+from imbaml.search_space.with_balancing.ensemble.boost import AdaReweightedGenerator
+from imbaml.search_space.classical.mlp import MLPClassifierGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 class RayTuner:
     @staticmethod
     def trainable(config):
-        trial_result = Imba.compute_metric_score(
+        trial_result = Imbaml.compute_metric_score(
             config['search_configurations'],
             config['metric'],
             config['X'],
@@ -49,32 +49,12 @@ class RayTuner:
         ray.train.report(trial_result)
 
 
-class Imba:
-    """
-    Imba is a class for optimizing machine learning models using hyperparameter tuning.
-
-    Attributes:
-        _metric (str): The performance metric to optimize (e.g., 'f1', 'balanced_accuracy').
-        _n_evals (int): The number of evaluations to perform during hyperparameter tuning.
-    
-    Methods:
-        __init__(metric, n_evals=60, re_init=True):
-            Initializes the Imba class with a specified metric and number of evaluations.
-        
-        _re_init():
-            Reinitializes the Ray framework with specified configurations.
-        
-        compute_metric_score(hyper_parameters, metric, X, y):
-            Computes the metric score for a given set of hyperparameters using cross-validation.
-        
-        fit(X, y):
-            Fits the model to the provided data and performs hyperparameter tuning based on the specified metric.
-    """
+class Imbaml:
     def __init__(self, metric, n_evals=60, re_init=True):
         self._metric = metric
         self._n_evals = n_evals
         if re_init:
-            Imba._re_init()
+            Imbaml._re_init()
 
     @staticmethod
     def _re_init():

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 FittedModel = TypeVar('FittedModel', bound=Any)
 
 
-class BenchmarkExperimentRunner(ABC):
+class BenchmarkRunner(ABC):
     def __init__(self, *args, **kwargs):
         self._tasks: List[Dataset, ...] = []
         self._id_counter = itertools.count(start=1)
@@ -34,10 +34,10 @@ class BenchmarkExperimentRunner(ABC):
         return self._tasks
 
 
-class ZenodoExperimentRunner(BenchmarkExperimentRunner):
+class ZenodoBenchmarkRunner(BenchmarkRunner):
     def __init__(self):
         super().__init__()
-        self._datasets = fetch_datasets(data_home='datasets/imbalanced', verbose=True)
+        self._datasets = fetch_datasets(data_home='tasks/imbalanced-learning', verbose=True)
 
         os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
         os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
@@ -71,7 +71,7 @@ class ZenodoExperimentRunner(BenchmarkExperimentRunner):
         raise NotImplementedError
 
 
-class OpenMLExperimentRunner(BenchmarkExperimentRunner):
+class OpenMLBenchmarkRunner(BenchmarkRunner):
     def __init__(self):
         super().__init__()
 

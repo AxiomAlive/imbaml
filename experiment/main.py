@@ -13,7 +13,7 @@ import numpy as np
 from pathlib import Path
 
 
-class ExperimentMain:
+class ApplicationMain:
     @staticmethod
     def run():
         parser = argparse.ArgumentParser()
@@ -46,7 +46,8 @@ class ExperimentMain:
             log_filepath = 'logs/'
             if automl == 'ag':
                 log_filepath += 'AutoGluon/'
-            elif automl == 'imba':
+            elif automl == 'imbaml':
+                # TODO: rename dir.
                 log_filepath += 'Imba/'
             elif automl == 'flaml':
                 log_filepath += 'FLAML/'
@@ -54,7 +55,7 @@ class ExperimentMain:
                 raise ValueError(
                     """
                     Invalid --automl option.
-                    Options available: ['imba', 'ag', 'flaml'].
+                    Options available: ['imbaml', 'ag', 'flaml'].
                     """)
                   
             Path(log_filepath).mkdir(parents=True, exist_ok=True)
@@ -70,9 +71,9 @@ class ExperimentMain:
             handlers=logging_handlers
         )
 
-        if automl == 'imba':
-            from experiment.imba import ImbaRunner
-            automl_runner = ImbaRunner(metrics, is_sanity_check=sanity_check)
+        if automl == 'imbaml':
+            from experiment.imbaml_ import ImbamlRunner
+            automl_runner = ImbamlRunner(metrics, is_sanity_check=sanity_check)
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
                 raise ValueError(
@@ -81,16 +82,16 @@ class ExperimentMain:
                     Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
                     """)
 
-            from experiment.autogluon import AutoGluonExperimentRunner
-            automl_runner = AutoGluonExperimentRunner(preset=ag_preset, metrics=metrics)
+            from experiment.autogluon import AutoGluonRunner
+            automl_runner = AutoGluonRunner(preset=ag_preset, metrics=metrics)
         elif automl == 'flaml':
-            from experiment.fast_lightweight_automl import FLAMLExperimentRunner
-            automl_runner = FLAMLExperimentRunner(metrics)
+            from experiment.flaml_ import FLAMLRunner
+            automl_runner = FLAMLRunner(metrics)
         else:
             raise ValueError(
                 """
                 Invalid --automl option.
-                Options available: ['imba', 'ag', 'flaml'].
+                Options available: ['imbaml', 'ag', 'flaml'].
                 """)
 
         benchmark_runner = automl_runner.benchmark_runner
@@ -100,5 +101,5 @@ class ExperimentMain:
 
 
 if __name__ == '__main__':
-    ExperimentMain.run()
+    ApplicationMain.run()
 

@@ -11,13 +11,13 @@ pyproject.toml
 AGModels/
 AutogluonModels/
 experiment/AutogluonModels/
-datasets/
+tasks/
 InstanceSpace-master/
 imbalanced-ensemble/
 logs/
 openml_cache/
 test/
-imbaml/search_spaces/classifiers_tpot/
+imbaml/search_space/classifiers_tpot/
 stash/
 
 __pycache__/

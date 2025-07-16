@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ from flaml import AutoML
 logger = logging.getLogger(__name__)
 
 
-class FLAMLExperimentRunner(AutoMLExperimentRunner):
+class FLAMLRunner(AutoMLExperimentRunner):
     def __init__(self, metrics):
         super().__init__(metrics)
 
@@ -22,7 +22,7 @@ class FLAMLExperimentRunner(AutoMLExperimentRunner):
         X_train: Union[np.ndarray, pd.DataFrame],
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
-        target_label: str,
+        target_label: Optional[str],
         dataset_name: str
     ) -> None:
 

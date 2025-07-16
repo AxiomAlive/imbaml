@@ -19,8 +19,8 @@ from typing import TypeVar
 from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
 
-from imbaml.search_spaces import EstimatorSpaceGenerator
-from imbaml.search_spaces.classical.ensemble.boost import AdaBoostClassifierGenerator
+from imbaml.search_space import EstimatorSpaceGenerator
+from imbaml.search_space.classical.ensemble.boost import AdaBoostClassifierGenerator
 
 logger = logging.getLogger(__name__)
 
