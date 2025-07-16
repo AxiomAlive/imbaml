@@ -11,13 +11,13 @@ from sklearn.exceptions import NotFittedError
 from sklearn.metrics import fbeta_score, balanced_accuracy_score, recall_score, precision_score, average_precision_score
 
 from common.preprocessing import DatasetPreprocessor
-from experiment.repository import FittedModel, ZenodoBenchmarkRunner
+from benchmark.repository import FittedModel, ZenodoBenchmarkRunner
 from utils.decorators import Decorators
 
 logger = logging.getLogger(__name__)
 
 
-class AutoMLExperimentRunner(ABC):
+class AutoMLBenchmarkRunner(ABC):
     def __init__(self, metrics):
         self._metrics = metrics
         self._benchmark_runner = ZenodoBenchmarkRunner()

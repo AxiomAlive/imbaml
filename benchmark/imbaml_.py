@@ -13,14 +13,14 @@ from utils.decorators import Decorators
 from ray.tune.search.hyperopt import HyperOptSearch
 import ray
 
-from .runner import AutoMLExperimentRunner
+from .runner import AutoMLBenchmarkRunner
 from imbaml.main import Imbaml
 
 
 logger = logging.getLogger(__name__)
 
 
-class ImbamlRunner(AutoMLExperimentRunner):
+class ImbamlRunner(AutoMLBenchmarkRunner):
     """
     ImbamlRunner is a class that extends AutoMLExperimentRunner to perform automated machine learning pipeline design using Imba framework.
 

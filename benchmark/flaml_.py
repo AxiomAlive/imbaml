@@ -6,14 +6,14 @@ import pandas as pd
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import f1_score
 
-from experiment.runner import AutoMLExperimentRunner
+from benchmark.runner import AutoMLBenchmarkRunner
 from flaml import AutoML
 
 
 logger = logging.getLogger(__name__)
 
 
-class FLAMLRunner(AutoMLExperimentRunner):
+class FLAMLRunner(AutoMLBenchmarkRunner):
     def __init__(self, metrics):
         super().__init__(metrics)
 

@@ -22,15 +22,15 @@ from collections import Counter
 import logging
 import pickle
 
-from experiment.repository import BenchmarkRunner, OpenMLBenchmarkRunner, ZenodoBenchmarkRunner
-from experiment.runner import AutoMLExperimentRunner
+from benchmark.repository import BenchmarkRunner, OpenMLBenchmarkRunner, ZenodoBenchmarkRunner
+from benchmark.runner import AutoMLBenchmarkRunner
 from utils.decorators import Decorators
 from sklearn.linear_model import LogisticRegression
 
 logger = logging.getLogger(__name__)
 
 
-class AutoGluonRunner(AutoMLExperimentRunner):
+class AutoGluonRunner(AutoMLBenchmarkRunner):
     def __init__(self, metrics, preset='good_quality'):
         super().__init__(metrics)
         self._preset = preset

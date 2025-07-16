@@ -72,7 +72,7 @@ class ApplicationMain:
         )
 
         if automl == 'imbaml':
-            from experiment.imbaml_ import ImbamlRunner
+            from benchmark.imbaml_ import ImbamlRunner
             automl_runner = ImbamlRunner(metrics, is_sanity_check=sanity_check)
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
@@ -82,10 +82,10 @@ class ApplicationMain:
                     Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
                     """)
 
-            from experiment.autogluon import AutoGluonRunner
+            from benchmark.autogluon import AutoGluonRunner
             automl_runner = AutoGluonRunner(preset=ag_preset, metrics=metrics)
         elif automl == 'flaml':
-            from experiment.flaml_ import FLAMLRunner
+            from benchmark.flaml_ import FLAMLRunner
             automl_runner = FLAMLRunner(metrics)
         else:
             raise ValueError(
