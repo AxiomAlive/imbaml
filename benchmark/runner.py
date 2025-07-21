@@ -3,6 +3,7 @@ import pprint
 import time
 from abc import ABC, abstractmethod
 from collections import Counter
+from io import StringIO
 from typing import Union, Optional, List, final
 
 import numpy as np
@@ -17,11 +18,11 @@ from utils.decorators import Decorators
 logger = logging.getLogger(__name__)
 
 
+## TODO: separate single and benchmark runners.
 class AutoMLBenchmarkRunner(ABC):
     def __init__(self, metrics):
         self._metrics = metrics
         self._benchmark_runner = ZenodoBenchmarkRunner()
-        self._n_evals = 60
         self._fitted_model: FittedModel = None
         self._configure_environment()
 
@@ -55,7 +56,10 @@ class AutoMLBenchmarkRunner(ABC):
     def _log_val_loss_alongside_model_class(self, losses):
         for m, l in losses.items():
             logger.info(f"Validation loss: {abs(float(l)):.3f}")
-            logger.info(pprint.pformat(f'Model class: {m}'))
+
+            string_buffer = StringIO()
+            pprint.pprint(f'Model class: {m}', string_buffer, compact=True)
+            logger.info(string_buffer.getvalue())
 
     @Decorators.log_exception
     def run(self) -> None:
@@ -100,12 +104,12 @@ class AutoMLBenchmarkRunner(ABC):
                 self.fit(X_train, y_train, metric, task.target_label, task.name)
                 logger.info(f"Training on dataset (id={task.id}, name={task.name}) successfully finished.")
 
-                self.examine_quality('time_passed', start_time=start_time)
+                self.score('time_passed', start_time=start_time)
 
                 y_predictions = self.predict(X_test)
-                self.examine_quality(metric, y_test, y_predictions, positive_class_label)
+                self.score(metric, y_test, y_predictions, positive_class_label)
 
-    def _compute_metric_score(self, metric: str, *args, **kwargs):
+    def _calculate_metric_score(self, metric: str, *args, **kwargs):
         y_test = kwargs.get("y_test")
         y_pred = kwargs.get("y_pred")
         pos_label = kwargs.get("pos_label")
@@ -124,7 +128,7 @@ class AutoMLBenchmarkRunner(ABC):
             time_passed = time.time() - start_time
             logger.info(f"Time passed: {time_passed // 60} minutes.")
 
-    def examine_quality(
+    def score(
             self,
             metrics: Union[str, List[str]],
             y_test: Optional[Union[pd.DataFrame, np.ndarray]]=None,
@@ -132,7 +136,7 @@ class AutoMLBenchmarkRunner(ABC):
             pos_label:Optional[int]=None,
             start_time:Optional[float]=None):
 
-        compute_metric_score_kwargs = {
+        calculate_metric_score_kwargs = {
             'y_test': y_test,
             'y_pred': y_pred,
             'pos_label': pos_label,
@@ -141,12 +145,12 @@ class AutoMLBenchmarkRunner(ABC):
 
         # TODO: add handling for 'all' as a value of metrics to avoid hard-coding all metric names.
         if isinstance(metrics, str):
-            self._compute_metric_score(
+            self._calculate_metric_score(
                 metrics,
-                **compute_metric_score_kwargs)
+                **calculate_metric_score_kwargs)
         elif isinstance(metrics, list):
             for metric in metrics:
-                self._compute_metric_score(
+                self._calculate_metric_score(
                     metric,
-                    **compute_metric_score_kwargs)
+                    **calculate_metric_score_kwargs)
 

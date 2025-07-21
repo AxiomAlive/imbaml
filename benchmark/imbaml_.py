@@ -14,32 +14,15 @@ from ray.tune.search.hyperopt import HyperOptSearch
 import ray
 
 from .runner import AutoMLBenchmarkRunner
-from imbaml.main import Imbaml
+from imbaml.main import ImbamlOptimizer
 
 
 logger = logging.getLogger(__name__)
 
 
-class ImbamlRunner(AutoMLBenchmarkRunner):
-    """
-    ImbamlRunner is a class that extends AutoMLExperimentRunner to perform automated machine learning pipeline design using Imba framework.
-
-    Attributes:
-        _n_evals (int): The number of evaluations to perform during fitting.
-        _fitted_model (object): The model that has been fitted.
-
-    Parameters:
-        metrics (list): A list of metrics to evaluate the models.
-        is_sanity_check (bool): A flag indicating whether to perform a sanity check, default is False.
-
-    Methods:
-        fit(X_train, y_train, metric_name, target_label, dataset_name):
-            Fits the model to the training data and logs validation loss alongside the model class.
-        
-        predict(X_test):
-            Predicts the target values for the given test data using the fitted model.
-    """
-    def __init__(self, metrics=None, is_sanity_check=False):
+class Imbaml(AutoMLBenchmarkRunner):
+    def __init__(self, metrics=None, is_sanity_check=False, verbosity=0):
+        self._verbosity = verbosity
         if metrics is None:
             metrics = []
         super()._configure_environment()
@@ -47,6 +30,8 @@ class ImbamlRunner(AutoMLBenchmarkRunner):
 
         if is_sanity_check:
             self._n_evals = 12
+        else:
+            self._n_evals = 60
 
     def _configure_environment(self):
         ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
@@ -60,7 +45,11 @@ class ImbamlRunner(AutoMLBenchmarkRunner):
         target_label: Optional[str],
         dataset_name: str
     ) -> None:
-        automl = Imbaml(metric=metric_name, re_init=False, n_evals=self._n_evals)
+        automl = ImbamlOptimizer(
+            metric=metric_name,
+            re_init=False,
+            n_evals=self._n_evals,
+            verbosity=self._verbosity)
 
         fit_results = automl.fit(X_train, y_train)
 

@@ -9,6 +9,7 @@ from imbens.ensemble import AdaCostClassifier
 from ray.tune import ResultGrid
 from ray.tune.search import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
+from ray.tune.search.optuna import OptunaSearch
 from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score, recall_score, \
     precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
@@ -22,26 +23,11 @@ from imbaml.search_space.classical.mlp import MLPClassifierGenerator
 logger = logging.getLogger(__name__)
 
 
-#TODO: use ray.tune.Trainable directly
-#
-# class RayTrainable(ray.tune.Trainable):
-#     def setup(self, config):
-#         self.algorithm_configuration = config["algorithm_configuration"]
-#         self.metric = config["metric"]
-#         self.X = config['X']
-#         self.y = config['y']
-#
-#     def step(self):
-#         trial_result = ImbaExperimentRunner.compute_metric_score(
-#             self.algorithm_configuration,
-#             self.metric,
-#             self.X,
-#             self.y)
-#         return {"loss": trial_result['loss']}
+#TODO: redesign to inherit from ray.tune.Trainable.
 class RayTuner:
     @staticmethod
     def trainable(config):
-        trial_result = Imbaml.compute_metric_score(
+        trial_result = ImbamlOptimizer.compute_metric_score(
             config['search_configurations'],
             config['metric'],
             config['X'],
@@ -49,12 +35,13 @@ class RayTuner:
         ray.train.report(trial_result)
 
 
-class Imbaml:
-    def __init__(self, metric, n_evals=60, re_init=True):
+class ImbamlOptimizer:
+    def __init__(self, metric, n_evals=60, re_init=True, verbosity=0):
         self._metric = metric
         self._n_evals = n_evals
+        self._verbosity = verbosity
         if re_init:
-            Imbaml._re_init()
+            ImbamlOptimizer._re_init()
 
     @staticmethod
     def _re_init():
@@ -96,7 +83,7 @@ class Imbaml:
             raise ValueError(f"Metric {self._metric} is not supported.")
 
         dataset_size_in_mb = int(pd.DataFrame(X).memory_usage(deep=True).sum() / (1024 ** 2))
-        logger.info(f"Dataset size: {dataset_size_in_mb} mb.")
+        logger.info(f"Dataset size: {dataset_size_in_mb} MB.")
 
         n_evals = self._n_evals
         if dataset_size_in_mb > 50:
@@ -104,8 +91,7 @@ class Imbaml:
         elif dataset_size_in_mb > 5:
             n_evals //= 3
 
-        logger.info(f"Number of optimization search trials: {n_evals}.")
-
+        ## AdaReweighted family produces a bunch of erroneous trials.
         search_space = [
             XGBClassifierGenerator.generate(),
             AdaReweightedGenerator.generate(AdaCostClassifier),
@@ -131,9 +117,9 @@ class Imbaml:
                 space=ray_configuration,
                 metric='loss',
                 mode='min'),
-            max_concurrent=5,
-            batch=True)
+            max_concurrent=4)
 
+        ## Consider reusage of actors.
         tuner = ray.tune.Tuner(
             RayTuner.trainable,
             tune_config=ray.tune.TuneConfig(
@@ -141,14 +127,9 @@ class Imbaml:
                 mode='min',
                 search_alg=search_algo,
                 num_samples=n_evals),
-            # run_config=ray.train.RunConfig(
-            #     stop={"training_iteration": 1},
-            #     checkpoint_config=ray.train.CheckpointConfig(
-            #         checkpoint_at_end=False
-            #     )
-            # )
-            # reuse_actors=True),
-            # param_space=ray_configuration
+            run_config=ray.train.RunConfig(
+                verbose=self._verbosity
+            )
         )
 
         return tuner.fit()

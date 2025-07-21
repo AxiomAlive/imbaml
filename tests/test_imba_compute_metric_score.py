@@ -12,7 +12,7 @@ def sample_data():
 def test_compute_metric_score_f1(sample_data):
     X, y = sample_data
     hyper_parameters = {'model_class': 'XGBClassifier', 'max_depth': 3, 'n_estimators': 10}
-    imba = Imbaml(metric='f1')
+    imba = ImbamlOptimizer(metric='f1')
     result = imba.compute_metric_score(hyper_parameters, imba._metric, X, y)
     assert 'loss' in result
     assert result['status'] == 'ok'
@@ -20,7 +20,7 @@ def test_compute_metric_score_f1(sample_data):
 def test_compute_metric_score_balanced_accuracy(sample_data):
     X, y = sample_data
     hyper_parameters = {'model_class': 'XGBClassifier', 'max_depth': 3, 'n_estimators': 10}
-    imba = Imbaml(metric='balanced_accuracy')
+    imba = ImbamlOptimizer(metric='balanced_accuracy')
     result = imba.compute_metric_score(hyper_parameters, imba._metric, X, y)
     assert 'loss' in result
     assert result['status'] == 'ok'
@@ -28,18 +28,18 @@ def test_compute_metric_score_balanced_accuracy(sample_data):
 def test_compute_metric_score_invalid_model(sample_data):
     X, y = sample_data
     hyper_parameters = {'model_class': 'InvalidModel', 'max_depth': 3, 'n_estimators': 10}
-    imba = Imbaml(metric='f1')
+    imba = ImbamlOptimizer(metric='f1')
     with pytest.raises(ValueError):
         imba.compute_metric_score(hyper_parameters, imba._metric, X, y)import unittest
 import numpy as np
 import pandas as pd
 from sklearn.datasets import make_classification
-from imbaml.main import Imbaml
+from imbaml.main import ImbamlOptimizer
 
 class TestImba(unittest.TestCase):
     def setUp(self):
         self.X, self.y = make_classification(n_samples=100, n_features=20, random_state=42)
-        self.imba = Imbaml(metric='f1', n_evals=10)
+        self.imba = ImbamlOptimizer(metric='f1', n_evals=10)
 
     def test_compute_metric_score_f1(self):
         hyper_parameters = {

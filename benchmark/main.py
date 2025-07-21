@@ -72,8 +72,8 @@ class ApplicationMain:
         )
 
         if automl == 'imbaml':
-            from benchmark.imbaml_ import ImbamlRunner
-            automl_runner = ImbamlRunner(metrics, is_sanity_check=sanity_check)
+            from benchmark.imbaml_ import Imbaml
+            automl_runner = Imbaml(metrics, is_sanity_check=sanity_check)
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
                 raise ValueError(
