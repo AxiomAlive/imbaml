@@ -2,39 +2,39 @@
 
 prepare_environment() {
   declare -g log_to_filesystem=true
-  declare -g automl='imbaml'
-  declare -g metrics=('f1')
-  #  declare imba_search_space='all'
-
   # TODO: check for flags for comparison.
   if [[ "$*" == *"-c"* ]]; then
     unset log_to_filesystem
   fi
 
+  declare -g automl='imbaml'
+  #  declare imba_search_space='all'
   case "$*" in
-    *"-ag"*)
+    "-ag"*)
       automl="ag"
+      declare -g autogluon_preset='medium_quality'
 
-      if [[ "$*" != *"-test"* ]]; then
-        declare -g autogluon_preset='good_quality'
-      else
-        declare -g autogluon_preset='medium_quality'
-      fi
-      ;;
+      case "$*" in
+        *"-ag_good"*)
+          autogluon_preset='good_quality'
+        ;;
+        *"-ag_best"*)
+          autogluon_preset='best_quality'
+        ;;
+        *"-ag_extreme"*)
+          autogluon_preset='extreme_quality'
+        ;;
+      esac
+    ;;
     *"-flaml"*)
       automl="flaml"
       ;;
   esac
 
+  declare -g metrics=('f1')
   case "$*" in
     *"-acc"*)
       metrics[0]="balanced_accuracy"
-      ;;
-    *"-rec"*)
-      metrics[0]="recall"
-      ;;
-    *"-pr"*)
-      metrics[0]="precision"
       ;;
     *"-ap"*)
       metrics[0]="average_precision"
@@ -51,7 +51,7 @@ prepare_environment() {
 run_on_cloud() {
   prepare_environment "$@"
 
-  datasphere project job execute -p bt11vja833cag6o9vusf -c cloud.yaml &
+  datasphere project job execute -p "$YC_PROJECT_ID" -c cloud.yaml &
 }
 
 run_locally() {

@@ -17,9 +17,9 @@ class ApplicationMain:
     @staticmethod
     def run():
         parser = argparse.ArgumentParser()
-        parser.add_argument('--automl', action='store', dest='automl', default='imba')
+        parser.add_argument('--automl', action='store', dest='automl', default='imbaml')
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
-        parser.add_argument('--autogluon_preset', action='store', dest='autogluon_preset', default='good_quality')
+        parser.add_argument('--autogluon_preset', action='store', dest='autogluon_preset', default='medium_quality')
         parser.add_argument('--metrics', action='store', dest='metric', default='f1')
         parser.add_argument('--sanity_check', action='store', dest='sanity_check', type=bool, default=False)
 
@@ -31,11 +31,11 @@ class ApplicationMain:
         sanity_check = getattr(args, 'sanity_check')
 
         for metric_name in metrics:
-            if metric_name not in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:
+            if metric_name not in ['f1', 'balanced_accuracy', 'average_precision']:
                 raise ValueError(
                     """
                     Invalid --metric option.
-                    Options available: ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision'].
+                    Options available: ['f1', 'balanced_accuracy', 'average_precision'].
                     """)
 
         logging_handlers = [
@@ -75,11 +75,11 @@ class ApplicationMain:
             from benchmark.imbaml_ import Imbaml
             automl_runner = Imbaml(metrics, is_sanity_check=sanity_check)
         elif automl == 'ag':
-            if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
+            if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality']:
                 raise ValueError(
                     """
                     Invalid --preset option.
-                    Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
+                    Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality'].
                     """)
 
             from benchmark.autogluon import AutoGluonRunner

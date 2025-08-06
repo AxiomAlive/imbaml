@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class AutoGluonRunner(AutoMLBenchmarkRunner):
-    def __init__(self, metrics, preset='good_quality'):
+    def __init__(self, metrics, preset='medium_quality'):
         super().__init__(metrics)
         self._preset = preset
 
@@ -39,11 +39,11 @@ class AutoGluonRunner(AutoMLBenchmarkRunner):
         return self._preset
 
     def set_preset(self, preset):
-        if preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality']:
+        if preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality']:
             raise ValueError(
                 """
                 Invalid value of parameter preset.
-                Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality'].
+                Options available: ['medium_quality', 'good_quality', 'high_quality', 'extreme_quality'].
                 """)
         self._preset = preset
 
