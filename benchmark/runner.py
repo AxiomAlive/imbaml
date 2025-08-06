@@ -104,16 +104,16 @@ class AutoMLBenchmarkRunner(ABC):
                 self.fit(X_train, y_train, metric, task.target_label, task.name)
                 logger.info(f"Training on dataset (id={task.id}, name={task.name}) successfully finished.")
 
-                self.score('time_passed', start_time=start_time)
+                time_passed = time.time() - start_time
+                logger.info(f"Time passed: {time_passed // 60} minutes.")
 
                 y_predictions = self.predict(X_test)
                 self.score(metric, y_test, y_predictions, positive_class_label)
 
-    def _calculate_metric_score(self, metric: str, *args, **kwargs):
+    def _calculate_metric_score(self, metric: str, *args, **kwargs) -> None:
         y_test = kwargs.get("y_test")
         y_pred = kwargs.get("y_pred")
         pos_label = kwargs.get("pos_label")
-        start_time = kwargs.get("start_time")
 
         if metric == 'f1':
             f1 = fbeta_score(y_test, kwargs.get("y_pred"), beta=1, pos_label=pos_label)
@@ -124,9 +124,6 @@ class AutoMLBenchmarkRunner(ABC):
         elif metric == 'average_precision':
             average_precision = average_precision_score(y_test, y_pred, pos_label=pos_label)
             logger.info(f"Average precision: {average_precision:.3f}")
-        elif metric == 'time_passed':
-            time_passed = time.time() - start_time
-            logger.info(f"Time passed: {time_passed // 60} minutes.")
 
     def score(
             self,
