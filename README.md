@@ -24,17 +24,17 @@ Only Linux support has been tested. Support for Windows and MacOS is not confirm
 2. Virtual environment named `venv`.
 3. Installation of `requrements.txt`.
 
-An example of running **IMBAML** using your data is available at `example.py`.
+An example of running **IMBAML** using your data is available in `example.py`.
 <br>
 <br>
 To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/imblearn.datasets.fetch_datasets.html#imblearn.datasets.fetch_datasets) locally just type in the terminal:
 ```
 ./benchmark.sh
 ```
-By default, benchmark for **IMBAML** will be run. To change to **Auto-Gluon** add the `-ag` argument. 
+By default, benchmark for **IMBAML** will be run. To change to **Auto-Gluon** add the `-ag` argument. To change to **FLAML** add the `-flaml` argument.  
 <br>
 <br>
-Also, a cloud run option is available (with a `-cloud` argument) on the [Yandex Datasphere](https://datasphere.yandex.cloud/). Configuration file is `cloud.yaml`.
+Also, a cloud run option is available (with a `-cloud` argument) on [Yandex.Datasphere](https://datasphere.yandex.cloud/). En example of configuration file is `cloud.yaml`.
 
 [comment]: <> (<br>)
 [comment]: <> (An example of usage with your data is available at `example.py`.)
