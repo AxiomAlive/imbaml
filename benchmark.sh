@@ -57,7 +57,7 @@ run_on_cloud() {
 run_locally() {
   prepare_environment "$@"
 
-  "$VIRTUAL_ENV"/bin/python -m experiment.main\
+  "$VIRTUAL_ENV"/bin/python -m benchmark.main\
   --automl="$automl"\
   --log_to_filesystem="$log_to_filesystem"\
   --autogluon_preset="$autogluon_preset"\
