@@ -22,3 +22,5 @@ stash/
 
 __pycache__/
 *.pkl
+
+example.py

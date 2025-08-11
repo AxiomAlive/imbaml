@@ -43,9 +43,10 @@ class DatasetPreprocessor:
         return X_encoded, y_encoded
 
     def split_data_on_train_and_test(
-            self,
-            X: Union[pd.DataFrame, np.ndarray],
-            y: Union[pd.Series, np.ndarray]) -> List[Union[pd.DataFrame, pd.Series, np.ndarray]]:
+        self,
+        X: Union[pd.DataFrame, np.ndarray],
+        y: Union[pd.Series, np.ndarray]
+    ) -> List[Union[pd.DataFrame, pd.Series, np.ndarray]]:
         return tts(
             X,
             y,

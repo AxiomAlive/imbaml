@@ -24,9 +24,8 @@ Only Linux support has been tested. Support for Windows and MacOS is not confirm
 2. Virtual environment named `venv`.
 3. Installation of `requrements.txt`.
 
-An example of running **IMBAML** using your data is available in `example.py`.
-<br>
-<br>
+[comment]: <> (An example of running **IMBAML** using your data is available in `example.py`.)
+
 To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/imblearn.datasets.fetch_datasets.html#imblearn.datasets.fetch_datasets) locally just type in the terminal:
 ```
 ./benchmark.sh

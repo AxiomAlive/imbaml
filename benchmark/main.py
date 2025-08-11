@@ -1,21 +1,15 @@
 import argparse
 import logging
-import os
-import shutil
 import sys
 from datetime import datetime
-from typing import Optional
 
-import pandas as pd
-from setuptools import setup
-
-import numpy as np
 from pathlib import Path
+from common.runner import AutoMLBenchmarkRunner
 
 
-class ApplicationMain:
+class AutoMLBenchmark:
     @staticmethod
-    def run():
+    def main():
         parser = argparse.ArgumentParser()
         parser.add_argument('--automl', action='store', dest='automl', default='imbaml')
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
@@ -72,8 +66,8 @@ class ApplicationMain:
         )
 
         if automl == 'imbaml':
-            from benchmark.imbaml_ import Imbaml
-            automl_runner = Imbaml(metrics, is_sanity_check=sanity_check)
+            #TODO: pass is_sanity_check=sanity_check.
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='imbaml')
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality']:
                 raise ValueError(
@@ -82,11 +76,10 @@ class ApplicationMain:
                     Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality'].
                     """)
 
-            from benchmark.autogluon import AutoGluonRunner
-            automl_runner = AutoGluonRunner(preset=ag_preset, metrics=metrics)
+            #TODO: pass preset=ag_preset.
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='ag')
         elif automl == 'flaml':
-            from benchmark.flaml_ import FLAMLRunner
-            automl_runner = FLAMLRunner(metrics)
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='flaml')
         else:
             raise ValueError(
                 """
@@ -94,12 +87,12 @@ class ApplicationMain:
                 Options available: ['imbaml', 'ag', 'flaml'].
                 """)
 
-        benchmark_runner = automl_runner.benchmark_runner
-        benchmark_runner.define_tasks()
+        dataset_repo = bench_runner.repository
+        dataset_repo.define_tasks()
 
-        automl_runner.run()
+        bench_runner.run()
 
 
 if __name__ == '__main__':
-    ApplicationMain.run()
+    AutoMLBenchmark.main()
 

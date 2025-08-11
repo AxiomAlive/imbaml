@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 FittedModel = TypeVar('FittedModel', bound=Any)
 
 
-class BenchmarkRunner(ABC):
+class DatasetRepository(ABC):
     def __init__(self, *args, **kwargs):
         self._tasks: List[Dataset, ...] = []
         self._id_counter = itertools.count(start=1)
@@ -34,7 +34,7 @@ class BenchmarkRunner(ABC):
         return self._tasks
 
 
-class ZenodoBenchmarkRunner(BenchmarkRunner):
+class ZenodoRepository(DatasetRepository):
     def __init__(self):
         super().__init__()
         self._datasets = fetch_datasets(data_home='tasks/imbalanced-learning', verbose=True)
@@ -71,7 +71,7 @@ class ZenodoBenchmarkRunner(BenchmarkRunner):
         raise NotImplementedError
 
 
-class OpenMLBenchmarkRunner(BenchmarkRunner):
+class OpenMLRepository(DatasetRepository):
     def __init__(self):
         super().__init__()
 
