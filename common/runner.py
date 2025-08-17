@@ -81,21 +81,23 @@ class AutoMLRunner(ABC):
             logger.info(f"Training on dataset (id={task.id}, name={task.name}) successfully finished.")
 
             time_passed = time.time() - start_time
-            logger.info(f"Time passed: {time_passed // 60} minutes.")
+            logger.info(f"Training time is {time_passed // 60} min.")
 
             y_predictions = self._automl.predict(X_test)
+            # TODO: evaluate on additional metrics for a single runner.
             self._automl.score(metric, y_test, y_predictions, positive_class_label)
 
 
 class AutoMLSingleRunner(AutoMLRunner):
-    def __init__(self, task: Union[pd.DataFrame, np.ndarray], metrics: Optional[List[str]], *args, **kwargs):
+    def __init__(self, task: Union[pd.DataFrame, np.ndarray], metric: str = 'f1', *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._metrics = metrics
+        self._metrics = [metric]
         self._fitted_model: FittedModel = None
         self._task = task
 
     @Decorators.log_exception
     def run(self) -> None:
+        logger.info(f"Optimization metric is {self._metrics[0]}.")
         self._run_on_task(self._task)
 
 
@@ -112,6 +114,7 @@ class AutoMLBenchmarkRunner(AutoMLRunner):
 
     @Decorators.log_exception
     def run(self) -> None:
+        logger.info(f"Optimization metrics are {self._metrics}.")
         for task in self._repository.get_tasks():
             self._run_on_task(task)
 

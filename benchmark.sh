@@ -31,16 +31,20 @@ prepare_environment() {
       ;;
   esac
 
-  declare -g metrics=('f1')
+  declare -g metrics=('f1' 'balanced_accuracy' 'average_precision')
   case "$*" in
-    *"-acc"*)
-      metrics[0]="balanced_accuracy"
+    *"-f1"*)
+      metrics=("f1")
+      ;;
+    *"-bal_acc"*)
+      metrics=("balanced_accuracy")
       ;;
     *"-ap"*)
-      metrics[0]="average_precision"
+      metrics=("average_precision")
       ;;
   esac
 
+  declare -g sanity_check=true
   if [[ "$*" != *"-test"* || $automl != 'imbaml' ]]; then
     unset sanity_check
   fi
