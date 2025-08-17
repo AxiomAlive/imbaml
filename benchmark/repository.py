@@ -54,8 +54,10 @@ class ZenodoRepository(DatasetRepository):
 
     def define_tasks(self, task_range: Optional[List[int]] = None):
         if task_range is None:
-            task_range = range(1, len(self._datasets.keys()) + 1)
-            logger.info(task_range)
+            range_start = 1
+            range_end = len(self._datasets.keys()) + 1
+            task_range = range(range_start, range_end)
+            logger.info(f"Running tasks from {range_start} to {range_end}.")
         for i in task_range:
             self._tasks.append(self.load_dataset(i))
 

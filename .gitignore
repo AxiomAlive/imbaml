@@ -1,5 +1,4 @@
 venv/
-env/
 
 .idea/
 .vscode/
@@ -23,4 +22,3 @@ stash/
 __pycache__/
 *.pkl
 
-example.py

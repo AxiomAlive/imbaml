@@ -5,6 +5,9 @@ from datetime import datetime
 
 from pathlib import Path
 from common.runner import AutoMLBenchmarkRunner
+import importlib
+
+logger = logging.getLogger(__name__)
 
 
 class AutoMLBenchmark:
@@ -56,8 +59,6 @@ class AutoMLBenchmark:
             log_filepath += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'
             logging_handlers.append(logging.FileHandler(filename=log_filepath, encoding='utf-8', mode='w'))
         
-        import importlib
-        importlib.reload(logging)
 
         logging.basicConfig(
             level=logging.INFO,
@@ -66,8 +67,7 @@ class AutoMLBenchmark:
         )
 
         if automl == 'imbaml':
-            #TODO: pass is_sanity_check=sanity_check.
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='imbaml')
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='imbaml', is_sanity_check=sanity_check)
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality']:
                 raise ValueError(
@@ -75,9 +75,7 @@ class AutoMLBenchmark:
                     Invalid --preset option.
                     Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality'].
                     """)
-
-            #TODO: pass preset=ag_preset.
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='ag')
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='ag', preset=ag_preset)
         elif automl == 'flaml':
             bench_runner = AutoMLBenchmarkRunner(metrics, automl='flaml')
         else:
