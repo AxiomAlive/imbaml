@@ -35,39 +35,13 @@ class AutoMLBenchmark:
                     Options available: ['f1', 'balanced_accuracy', 'average_precision'].
                     """)
 
-        logging_handlers = [
-            logging.StreamHandler(stream=sys.stdout),
-        ]
-
-        if log_to_filesystem:
-            log_filepath = 'logs/'
-            if automl == 'ag':
-                log_filepath += 'AutoGluon/'
-            elif automl == 'imbaml':
-                # TODO: rename dir.
-                log_filepath += 'Imba/'
-            elif automl == 'flaml':
-                log_filepath += 'FLAML/'
-            else:
-                raise ValueError(
-                    """
-                    Invalid --automl option.
-                    Options available: ['imbaml', 'ag', 'flaml'].
-                    """)
-                  
-            Path(log_filepath).mkdir(parents=True, exist_ok=True)
-            log_filepath += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'
-            logging_handlers.append(logging.FileHandler(filename=log_filepath, encoding='utf-8', mode='w'))
-        
-
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=logging_handlers
-        )
-
         if automl == 'imbaml':
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='imbaml', sanity_check=sanity_check)
+            bench_runner = AutoMLBenchmarkRunner(
+                metrics,
+                automl='imbaml',
+                sanity_check=sanity_check,
+                log_to_file=log_to_filesystem
+            )
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality']:
                 raise ValueError(
@@ -75,9 +49,9 @@ class AutoMLBenchmark:
                     Invalid --preset option.
                     Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality'].
                     """)
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='ag', preset=ag_preset)
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='ag', preset=ag_preset, log_to_filesystem=log_to_filesystem)
         elif automl == 'flaml':
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='flaml')
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='flaml', log_to_filesystem=log_to_filesystem)
         else:
             raise ValueError(
                 """

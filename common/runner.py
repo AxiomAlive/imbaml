@@ -1,9 +1,12 @@
 import logging
 import pprint
+import sys
 import time
 from abc import ABC, abstractmethod
 from collections import Counter
+from datetime import datetime
 from io import StringIO
+from pathlib import Path
 from typing import Union, Optional, List, final
 
 import numpy as np
@@ -19,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class AutoMLRunner(ABC):
-    def __init__(self, automl='imbaml', *args, **kwargs):
+    def __init__(self, automl='imbaml', log_to_file=False, *args, **kwargs):
         if automl == 'imbaml':
             self._automl = Imbaml(*args, **kwargs)
         elif automl == 'ag':
@@ -33,14 +36,47 @@ class AutoMLRunner(ABC):
                 Options available: ['imbaml', 'ag', 'flaml'].
                 """)
 
+        self._configure_environment(log_to_file)
+
     @abstractmethod
     def run(self) -> None:
         raise NotImplementedError()
 
+    def _configure_environment(self, log_to_file=False) -> None:
+        logging_handlers = [
+            logging.StreamHandler(stream=sys.stdout),
+        ]
+
+        if log_to_file:
+            log_filepath = 'logs/'
+            if self._automl == 'ag':
+                log_filepath += 'AutoGluon/'
+            elif self._automl == 'imbaml':
+                # TODO: rename dir.
+                log_filepath += 'Imba/'
+            elif self._automl == 'flaml':
+                log_filepath += 'FLAML/'
+            else:
+                raise ValueError(
+                    """
+                    Invalid --automl option.
+                    Options available: ['imbaml', 'ag', 'flaml'].
+                    """)
+
+            Path(log_filepath).mkdir(parents=True, exist_ok=True)
+            log_filepath += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'
+            logging_handlers.append(logging.FileHandler(filename=log_filepath, encoding='utf-8', mode='w'))
+
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=logging_handlers
+        )
+
     @final
     def _run_on_task(self, task: Union[pd.DataFrame, np.ndarray]) -> None:
         if task is None:
-            logger.error("Task run failed.")
+            logger.error("Task run failed. Task is undefined.")
             return
 
         if isinstance(task.X, np.ndarray) or isinstance(task.X, pd.DataFrame):
