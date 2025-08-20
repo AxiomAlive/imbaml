@@ -36,16 +36,13 @@ class RayTuner:
 
 
 class ImbamlOptimizer:
-    def __init__(self, metric, n_evals=60, re_init=True, verbosity=0):
+    def __init__(self, metric, n_evals, sanity_check, verbosity=0, re_init=True):
         self._metric = metric
         self._n_evals = n_evals
+        self._sanity_check = sanity_check
         self._verbosity = verbosity
         if re_init:
-            ImbamlOptimizer._re_init()
-
-    @staticmethod
-    def _re_init():
-        ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
 
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
@@ -75,23 +72,20 @@ class ImbamlOptimizer:
             metric = balanced_accuracy_score
         elif self._metric == 'average_precision':
             metric = average_precision_score
-        elif self._metric == 'recall':
-            metric = recall_score
-        elif self._metric == 'precision':
-            metric = precision_score
         else:
             raise ValueError(f"Metric {self._metric} is not supported.")
 
         dataset_size_in_mb = int(pd.DataFrame(X).memory_usage(deep=True).sum() / (1024 ** 2))
-        logger.info(f"Dataset size: {dataset_size_in_mb} MB.")
+        logger.info(f"Dataset size is {dataset_size_in_mb} mb.")
 
         n_evals = self._n_evals
-        if dataset_size_in_mb > 50:
-            n_evals //= 4
-        elif dataset_size_in_mb > 5:
-            n_evals //= 3
+        if not self._sanity_check:
+            if dataset_size_in_mb > 50:
+                n_evals //= 4
+            elif dataset_size_in_mb > 5:
+                n_evals //= 3
 
-        ## AdaReweighted family produces a bunch of erroneous trials.
+        # AdaReweighted family produces a bunch of erroneous trials.
         search_space = [
             XGBClassifierGenerator.generate(),
             AdaReweightedGenerator.generate(AdaCostClassifier),
@@ -119,7 +113,7 @@ class ImbamlOptimizer:
                 mode='min'),
             max_concurrent=4)
 
-        ## Consider reusage of actors.
+        # TODO: Consider reusage of actors.
         tuner = ray.tune.Tuner(
             RayTuner.trainable,
             tune_config=ray.tune.TuneConfig(

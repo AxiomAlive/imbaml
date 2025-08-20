@@ -99,14 +99,16 @@ class AutoML(ABC):
 class Imbaml(AutoML):
     def __init__(
         self,
-        is_sanity_check=False,
+        sanity_check=False,
         verbosity=0,
     ):
         self._verbosity = verbosity
-        if is_sanity_check:
-            self._n_evals = 12
+        if sanity_check:
+            self._n_evals = 6
+            self._sanity_check = True
         else:
             self._n_evals = 60
+            self._sanity_check = False
 
         super()._configure_environment()
         self._configure_environment()
@@ -131,7 +133,9 @@ class Imbaml(AutoML):
             metric=metric_name,
             re_init=False,
             n_evals=self._n_evals,
-            verbosity=self._verbosity)
+            verbosity=self._verbosity,
+            sanity_check=self._sanity_check
+        )
 
         fit_results = automl.fit(X_train, y_train)
 

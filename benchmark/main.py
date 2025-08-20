@@ -67,7 +67,7 @@ class AutoMLBenchmark:
         )
 
         if automl == 'imbaml':
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='imbaml', is_sanity_check=sanity_check)
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='imbaml', sanity_check=sanity_check)
         elif automl == 'ag':
             if ag_preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality']:
                 raise ValueError(
