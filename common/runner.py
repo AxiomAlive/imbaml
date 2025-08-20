@@ -115,6 +115,6 @@ class AutoMLBenchmarkRunner(AutoMLRunner):
     @Decorators.log_exception
     def run(self) -> None:
         logger.info(f"Optimization metrics are {self._metrics}.")
-        for task in self._repository.get_tasks():
+        for task in self._repository.get_datasets():
             self._run_on_task(task)
 

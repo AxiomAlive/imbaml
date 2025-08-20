@@ -19,63 +19,52 @@ FittedModel = TypeVar('FittedModel', bound=Any)
 
 class DatasetRepository(ABC):
     def __init__(self, *args, **kwargs):
-        self._tasks: List[Dataset, ...] = []
-        self._id_counter = itertools.count(start=1)
+        self._datasets: List[Dataset, ...] = []
+        self._id = itertools.count(start=1)
 
     @abstractmethod
-    def define_tasks(self, task_range: Optional[List[int]] = None):
+    def load_datasets(self, task_range: Optional[List[int]] = None) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
+    def load_dataset(self, task_id: Optional[int] = None) -> Dataset:
         raise NotImplementedError()
 
-    def get_tasks(self):
-        return self._tasks
+    def get_datasets(self):
+        return self._datasets
 
 
 class ZenodoRepository(DatasetRepository):
     def __init__(self):
         super().__init__()
-        self._datasets = fetch_datasets(data_home='tasks/imbalanced-learning', verbose=True)
+        self._raw_datasets = fetch_datasets(data_home='tasks/imbalanced-learning', verbose=True)
 
-        os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
-        os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
-        os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
-
-    def load_dataset(self, task_id: Optional[int] = None) -> Optional[Dataset]:
-        for i, (dataset_name, dataset_data) in enumerate(self._datasets.items()):
-            if i + 1 == task_id:
+    def load_dataset(self, task_id: Optional[int] = None) -> Dataset:
+        for i, (dataset_name, dataset_data) in enumerate(self._raw_datasets.items(), 1):
+            if i == task_id:
                 return Dataset(
-                    id=next(self._id_counter),
+                    id=next(self._id),
                     name=dataset_name,
                     X=dataset_data.get('data'),
                     y=dataset_data.get('target'))
+            elif i > task_id:
+                raise ValueError(f"Dataset with id={task_id} is not available.")
 
-    def define_tasks(self, task_range: Optional[List[int]] = None):
+    def load_datasets(self, task_range: Optional[List[int]] = None) -> None:
         if task_range is None:
             range_start = 1
-            range_end = len(self._datasets.keys()) + 1
+            range_end = len(self._raw_datasets.keys()) + 1
             task_range = range(range_start, range_end)
             logger.info(f"Running tasks from {range_start} to {range_end}.")
         for i in task_range:
-            self._tasks.append(self.load_dataset(i))
-
-    def fit(
-            self,
-            X_train: Union[np.ndarray, pd.DataFrame],
-            y_train: Union[np.ndarray, pd.Series],
-            target_label: str,
-            dataset_name: str):
-        raise NotImplementedError
-
-    def predict(self, X_test: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
-        raise NotImplementedError
+            self._datasets.append(self.load_dataset(i))
 
 
+# TODO: refactor.
 class OpenMLRepository(DatasetRepository):
-    def __init__(self):
+    def __init__(self, suite_id=271):
         super().__init__()
+        self._suit_id = suite_id
 
         import openml
         openml.config.set_root_cache_directory("openml_cache")
@@ -96,18 +85,17 @@ class OpenMLRepository(DatasetRepository):
             return None
 
         return Dataset(
-            id=next(self._id_counter),
+            id=next(self._id),
             name=dataset.name,
             target_label=dataset.default_target_attribute,
             X=X,
             y=y)
 
-    def define_tasks(self, task_range: List[int] = None):
-        self._tasks = []
-        benchmark_suite = openml.study.get_suite(suite_id=271)
+    def load_datasets(self, task_range: List[int] = None) -> None:
+        benchmark_suite = openml.study.get_suite(suite_id=self._suit_id)
 
         for i, task_id in enumerate(benchmark_suite.tasks):
             if task_range is not None and i not in task_range:
                 continue
 
-            self._tasks.append(self.load_dataset(task_id))
+            self._datasets.append(self.load_dataset(task_id))

@@ -86,7 +86,7 @@ class AutoMLBenchmark:
                 """)
 
         dataset_repo = bench_runner.repository
-        dataset_repo.define_tasks()
+        dataset_repo.load_datasets()
 
         bench_runner.run()
 

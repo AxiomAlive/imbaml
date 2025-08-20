@@ -1,4 +1,5 @@
 import logging
+import os
 import pprint
 from abc import ABC, abstractmethod
 from io import StringIO
@@ -112,6 +113,10 @@ class Imbaml(AutoML):
 
     def _configure_environment(self, seed=42) -> None:
         ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+
+        os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
+        os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
+        os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
 
     @Decorators.log_exception
     def fit(
