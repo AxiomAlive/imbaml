@@ -37,35 +37,19 @@ class AutoMLRunner(ABC):
                 Options available: ['imbaml', 'ag', 'flaml'].
                 """)
 
-        self._configure_environment(log_to_file)
-
     @abstractmethod
     def run(self) -> None:
         raise NotImplementedError()
 
-    def _configure_environment(self, log_to_file=False) -> None:
+    def _configure_environment(self) -> None:
         logging_handlers = [
             logging.StreamHandler(stream=sys.stdout),
         ]
 
-        if log_to_file:
+        if self._log_to_file:
             log_filepath = 'logs/'
-            if self._automl == 'ag':
-                log_filepath += 'AutoGluon/'
-            elif self._automl == 'imbaml':
-                # TODO: rename dir.
-                log_filepath += 'Imba/'
-            elif self._automl == 'flaml':
-                log_filepath += 'FLAML/'
-            else:
-                raise ValueError(
-                    """
-                    Invalid --automl option.
-                    Options available: ['imbaml', 'ag', 'flaml'].
-                    """)
-
             Path(log_filepath).mkdir(parents=True, exist_ok=True)
-            log_filepath += datetime.now().strftime('%Y-%m-%d %H:%M') + '.log'
+            log_filepath += datetime.now().strftime(f'{self._automl} {",".join(self._metrics)} %Y.%m.%d %H:%M') + '.log'
             logging_handlers.append(logging.FileHandler(filename=log_filepath, encoding='utf-8', mode='w'))
 
         logging.basicConfig(

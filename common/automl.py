@@ -1,6 +1,7 @@
 import logging
 import os
 import pprint
+import re
 from abc import ABC, abstractmethod
 from io import StringIO
 from typing import Optional, Union, final, List
@@ -94,6 +95,9 @@ class AutoML(ABC):
         elif metric == 'average_precision':
             average_precision = average_precision_score(y_test, y_pred, pos_label=pos_label)
             logger.info(f"Average precision: {average_precision:.3f}")
+
+    def __str__(self):
+        return self.__class__.__name__
 
 
 class Imbaml(AutoML):
