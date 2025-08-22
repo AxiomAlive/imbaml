@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def main():
     dataset = ZenodoRepository().load_dataset(1)
 
-    # runner = AutoMLSingleRunner(dataset, 'f1', sanity_check=True, verbosity=1)
+    #runner = AutoMLSingleRunner(dataset, 'f1', sanity_check=True, verbosity=1)
     runner = AutoMLSingleRunner(dataset, 'f1')
 
     runner.run()

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class AutoMLRunner(ABC):
-    def __init__(self, automl='imbaml', log_to_file=False, *args, **kwargs):
+    def __init__(self, automl='imbaml', log_to_file=True, *args, **kwargs):
         self._log_to_file = log_to_file
         if automl == 'imbaml':
             self._automl = Imbaml(*args, **kwargs)
@@ -49,7 +49,7 @@ class AutoMLRunner(ABC):
         if self._log_to_file:
             log_filepath = 'logs/'
             Path(log_filepath).mkdir(parents=True, exist_ok=True)
-            log_filepath += datetime.now().strftime(f'{self._automl} {",".join(self._metrics)} %Y.%m.%d %H:%M') + '.log'
+            log_filepath += datetime.now().strftime(f'{self._automl} {",".join(self._metrics)} %Y.%m.%d %H:%M:%S') + '.log'
             logging_handlers.append(logging.FileHandler(filename=log_filepath, encoding='utf-8', mode='w'))
 
         logging.basicConfig(
