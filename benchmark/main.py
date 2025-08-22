@@ -17,14 +17,14 @@ class AutoMLBenchmark:
         parser.add_argument('--automl', action='store', dest='automl', default='imbaml')
         parser.add_argument('--log_to_filesystem', action='store', dest='log_to_filesystem', type=bool, default=True)
         parser.add_argument('--autogluon_preset', action='store', dest='autogluon_preset', default='medium_quality')
-        parser.add_argument('--metrics', action='store', dest='metric', default='f1')
+        parser.add_argument('--metrics', action='store', dest='metrics', default='f1')
         parser.add_argument('--sanity_check', action='store', dest='sanity_check', type=bool, default=False)
 
         args = parser.parse_args()
         automl = getattr(args, 'automl')
         log_to_filesystem = getattr(args, 'log_to_filesystem')
         ag_preset = getattr(args, 'autogluon_preset')
-        metrics = getattr(args, 'metric').split(" ")
+        metrics = getattr(args, 'metrics').split(" ")
         sanity_check = getattr(args, 'sanity_check')
 
         for metric_name in metrics:

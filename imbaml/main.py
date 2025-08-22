@@ -36,10 +36,9 @@ class RayTuner:
 
 
 class ImbamlOptimizer:
-    def __init__(self, metric, n_evals, sanity_check, verbosity=0, re_init=True):
+    def __init__(self, metric, n_evals, verbosity=0, re_init=True):
         self._metric = metric
         self._n_evals = n_evals
-        self._sanity_check = sanity_check
         self._verbosity = verbosity
         if re_init:
             ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
@@ -74,16 +73,6 @@ class ImbamlOptimizer:
             metric = average_precision_score
         else:
             raise ValueError(f"Metric {self._metric} is not supported.")
-
-        dataset_size_in_mb = int(pd.DataFrame(X).memory_usage(deep=True).sum() / (1024 ** 2))
-        logger.info(f"Dataset size is {dataset_size_in_mb} mb.")
-
-        n_evals = self._n_evals
-        if not self._sanity_check:
-            if dataset_size_in_mb > 50:
-                n_evals //= 4
-            elif dataset_size_in_mb > 5:
-                n_evals //= 3
 
         # AdaReweighted family produces a bunch of erroneous trials.
         search_space = [
@@ -120,7 +109,7 @@ class ImbamlOptimizer:
                 metric='loss',
                 mode='min',
                 search_alg=search_algo,
-                num_samples=n_evals),
+                num_samples=self._n_evals),
             run_config=ray.train.RunConfig(
                 verbose=self._verbosity
             )

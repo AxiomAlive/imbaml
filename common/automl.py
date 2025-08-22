@@ -102,6 +102,7 @@ class Imbaml(AutoML):
         sanity_check=False,
         verbosity=0,
     ):
+        self._dataset_size = None
         self._verbosity = verbosity
         if sanity_check:
             self._n_evals = 6
@@ -113,13 +114,6 @@ class Imbaml(AutoML):
         super()._configure_environment()
         self._configure_environment()
 
-    def _configure_environment(self, seed=42) -> None:
-        ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
-
-        os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
-        os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
-        os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
-
     @Decorators.log_exception
     def fit(
         self,
@@ -129,15 +123,23 @@ class Imbaml(AutoML):
         target_label: Optional[str],
         dataset_name: str
     ) -> None:
-        automl = ImbamlOptimizer(
+        n_evals = self._n_evals
+        if not self._sanity_check:
+            if self.dataset_size is None:
+                raise ValueError("Dataset size is undefined.")
+            if self.dataset_size > 50:
+                n_evals //= 4
+            elif self.dataset_size > 5:
+                n_evals //= 3
+
+        optimizer = ImbamlOptimizer(
             metric=metric_name,
             re_init=False,
-            n_evals=self._n_evals,
-            verbosity=self._verbosity,
-            sanity_check=self._sanity_check
+            n_evals=n_evals,
+            verbosity=self._verbosity
         )
 
-        fit_results = automl.fit(X_train, y_train)
+        fit_results = optimizer.fit(X_train, y_train)
 
         best_trial = fit_results.get_best_result(metric='loss', mode='min')
         if best_trial is None:
@@ -169,15 +171,32 @@ class Imbaml(AutoML):
 
         self._fitted_model = best_model
 
+    @property
+    def dataset_size(self):
+        return self._dataset_size
+
+    @dataset_size.setter
+    def dataset_size(self, value):
+        self._dataset_size = value
+
+    def _configure_environment(self, seed=42) -> None:
+        ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
+
+        os.environ['RAY_IGNORE_UNHANDLED_ERRORS'] = '1'
+        os.environ['TUNE_DISABLE_AUTO_CALLBACK_LOGGERS'] = '1'
+        os.environ['TUNE_MAX_PENDING_TRIALS_PG'] = '1'
+
 
 class AutoGluon(AutoML):
     def __init__(self, preset='medium_quality'):
         self._preset = preset
 
-    def get_preset(self):
+    @property
+    def preset(self):
         return self._preset
 
-    def set_preset(self, preset):
+    @preset.setter
+    def preset(self, preset):
         if preset not in ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality']:
             raise ValueError(
                 """
@@ -205,9 +224,7 @@ class AutoGluon(AutoML):
         target_label: Optional[str],
         dataset_name: str
     ) -> None:
-        if metric_name  in ['f1', 'balanced_accuracy', 'average_precision', 'recall', 'precision']:
-            self._metric = metric_name
-        else:
+        if metric_name  not in ['f1', 'balanced_accuracy', 'average_precision']:
             raise ValueError(f"Metric {metric_name} is not supported.")
 
         if target_label is None and isinstance(X_train, np.ndarray):
@@ -228,7 +245,7 @@ class AutoGluon(AutoML):
         autogluon_predictor = TabularPredictor(
             problem_type='binary',
             label=target_label,
-            eval_metric=self._metric,
+            eval_metric=metric_name,
             verbosity=self._verbosity
         ).fit(
             autogluon_dataset_train,

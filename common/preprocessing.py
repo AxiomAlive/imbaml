@@ -54,7 +54,7 @@ class DatasetPreprocessor:
             test_size=0.2,
             stratify=y)
 
-    def make_imbalance(
+    def make_imbalanced(
         self,
         X_train,
         y_train,

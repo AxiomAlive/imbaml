@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class AutoMLRunner(ABC):
     def __init__(self, automl='imbaml', log_to_file=False, *args, **kwargs):
+        self._log_to_file = log_to_file
         if automl == 'imbaml':
             self._automl = Imbaml(*args, **kwargs)
         elif automl == 'ag':
@@ -111,6 +112,11 @@ class AutoMLRunner(ABC):
         number_of_train_instances_by_class = Counter(y_train)
         logger.info(number_of_train_instances_by_class)
 
+        dataset_size_in_mb = int(pd.DataFrame(X_train).memory_usage(deep=True).sum() / (1024 ** 2))
+        logger.info(f"Train sample size is {dataset_size_in_mb} mb.")
+        if isinstance(self._automl, Imbaml):
+            self._automl.dataset_size = dataset_size_in_mb
+
         for metric in self._metrics:
             start_time = time.time()
             self._automl.fit(X_train, y_train, metric, task.target_label, task.name)
@@ -131,6 +137,8 @@ class AutoMLSingleRunner(AutoMLRunner):
         self._fitted_model: FittedModel = None
         self._task = task
 
+        self._configure_environment()
+
     @Decorators.log_exception
     def run(self) -> None:
         logger.info(f"Optimization metric is {self._metrics[0]}.")
@@ -143,6 +151,8 @@ class AutoMLBenchmarkRunner(AutoMLRunner):
         self._metrics = metrics
         self._repository = ZenodoRepository()
         self._fitted_model: FittedModel = None
+
+        self._configure_environment()
 
     @property
     def repository(self):
