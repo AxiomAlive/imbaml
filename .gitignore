@@ -22,3 +22,7 @@ stash/
 __pycache__/
 *.pkl
 
+cloud.yaml
+example.py
+
+

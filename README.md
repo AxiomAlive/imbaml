@@ -30,13 +30,28 @@ To run a [benchmark](https://imbalanced-learn.org/stable/references/generated/im
 ```
 ./benchmark.sh
 ```
-By default, benchmark for **IMBAML** will be run. To change to **Auto-Gluon** add the `-ag` argument. To change to **FLAML** add the `-flaml` argument.  
-<br>
-<br>
-Also, a cloud run option is available (with a `-cloud` argument) on [Yandex.Datasphere](https://datasphere.yandex.cloud/). En example of configuration file is `cloud.yaml`.
+By default, benchmark for **IMBAML** will be run. To change to **Auto-Gluon** add the `-ag` argument. 
 
 [comment]: <> (<br>)
-[comment]: <> (An example of usage with your data is available at `example.py`.)
+
+[comment]: <> (<br>)
+
+[comment]: <> (Also, a cloud run option is available &#40;with a `-cloud` argument&#41; on [Yandex.Datasphere]&#40;https://datasphere.yandex.cloud/&#41;. En example of configuration file is `cloud.yaml`.)
+
+#### Example
+
+```python
+from benchmark.repository import ZenodoRepository
+from common.runner import AutoMLSingleRunner
+
+def main():
+    dataset = ZenodoRepository().load_dataset(1)
+    automl = AutoMLSingleRunner(dataset, 'f1')
+    automl.run()
+
+if __name__ == '__main__':
+    main()
+```
 
 ### Citation
 
