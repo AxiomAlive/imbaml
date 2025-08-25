@@ -4,7 +4,7 @@ import pprint
 import re
 from abc import ABC, abstractmethod
 from io import StringIO
-from typing import Optional, Union, final, List
+from typing import Optional, Union, final, List, Dict
 
 import numpy as np
 import pandas as pd
@@ -46,7 +46,7 @@ class AutoML(ABC):
         metrics: Union[str, List[str]],
         y_test: Optional[Union[pd.DataFrame, np.ndarray]]=None,
         y_pred: Optional[Union[pd.DataFrame, np.ndarray]]=None,
-        pos_label:Optional[int]=None,
+        pos_label : Optional[int]=None,
     ) -> None:
 
         calculate_metric_score_kwargs = {
@@ -67,15 +67,15 @@ class AutoML(ABC):
                     **calculate_metric_score_kwargs)
 
     @final
-    def _log_val_loss_alongside_model_class(self, losses):
+    def _log_val_loss_alongside_fitted_model(self, losses: Dict[str, np.float64]) -> None:
         for m, l in losses.items():
-            logger.info(f"Validation loss: {abs(float(l)):.3f}")
+            # TODO: different output for leaderboard.
+            logger.info(f"Best validation loss: {abs(l):.3f}")
 
-            string_buffer = StringIO()
-            pprint.pprint(f'Model class: {m}', string_buffer, compact=True)
-            logger.info(string_buffer.getvalue())
+            model_log = pprint.pformat(f"Best model class: {m}", compact=True)
+            logger.info(model_log)
 
-    #TODO: persist seed for usage of the same value anywhere.
+    # TODO: persist seed for usage of the same value anywhere.
     def _configure_environment(self, seed=42) -> None:
         np.random.seed(seed)
         logger.info(f"Seed = {seed}.")
@@ -105,6 +105,7 @@ class Imbaml(AutoML):
         self,
         sanity_check=False,
         verbosity=0,
+        leaderboard=False
     ):
         self._dataset_size = None
         self._verbosity = verbosity
@@ -114,6 +115,7 @@ class Imbaml(AutoML):
         else:
             self._n_evals = 60
             self._sanity_check = False
+        self._leaderboard = leaderboard
 
         super()._configure_environment()
         self._configure_environment()
@@ -145,6 +147,15 @@ class Imbaml(AutoML):
 
         fit_results = optimizer.fit(X_train, y_train)
 
+        if self._leaderboard:
+            val_losses = {}
+            for i, result in enumerate(fit_results):
+                if result.error:
+                    logger.info(f"Trial #{i} had an error:", result.error)
+                    continue
+                val_losses[result.metrics['model']] = result.metrics['loss']
+            self._log_val_loss_alongside_fitted_model(val_losses)
+
         best_trial = fit_results.get_best_result(metric='loss', mode='min')
         if best_trial is None:
             raise ValueError("No best trial.")
@@ -168,8 +179,8 @@ class Imbaml(AutoML):
         best_algorithm_configuration.pop('model_class')
         best_model = best_model_class(**best_algorithm_configuration)
 
-        val_losses = {best_model: best_validation_loss}
-        self._log_val_loss_alongside_model_class(val_losses)
+        model_with_loss = {best_model: best_validation_loss}
+        self._log_val_loss_alongside_fitted_model(model_with_loss)
 
         best_model.fit(X_train, y_train)
 
@@ -192,8 +203,9 @@ class Imbaml(AutoML):
 
 
 class AutoGluon(AutoML):
-    def __init__(self, preset='medium_quality'):
+    def __init__(self, preset='medium_quality', verbosity=0):
         self._preset = preset
+        self._verbosity = verbosity
 
     @property
     def preset(self):
@@ -256,8 +268,6 @@ class AutoGluon(AutoML):
             presets=[self._preset],
         )
 
-        logger.info(f"Training on dataset {dataset_name} finished.")
-
         val_scores = autogluon_predictor.leaderboard().get('score_val')
         if len(val_scores) == 0:
             logger.error("No best model found.")
@@ -265,8 +275,8 @@ class AutoGluon(AutoML):
 
         best_model_name = autogluon_predictor.model_best
 
-        val_losses = {best_model_name: val_scores.max()}
-        self._log_val_loss_alongside_model_class(val_losses)
+        val_losses = {best_model_name: np.float64(val_scores.max())}
+        self._log_val_loss_alongside_fitted_model(val_losses)
 
         autogluon_predictor.delete_models(models_to_keep=best_model_name, dry_run=False)
 
@@ -285,19 +295,20 @@ class FLAML(AutoML):
         target_label: Optional[str],
         dataset_name: str
     ) -> None:
-
+        metric = None
         if metric_name == 'average_precision':
-            self._metric = 'ap'
+            metric = 'ap'
         elif metric_name == 'f1':
-            self._metric = 'f1'
+            metric = 'f1'
         elif metric_name in ['balanced_accuracy', 'precision', 'recall']:
             raise ValueError(f"Metric {metric_name} is not supported.")
 
         automl = FLAMLPredictor()
-        automl.fit(X_train, y_train, task='classification', metric=self._metric)
+        automl.fit(X_train, y_train, task='classification', metric=metric)
 
         best_loss = automl.best_loss
         best_model = automl.best_estimator
-        self._log_val_loss_alongside_model_class({best_model: best_loss})
+
+        self._log_val_loss_alongside_fitted_model({best_model: np.float64(best_loss)})
 
         self._fitted_model = automl
