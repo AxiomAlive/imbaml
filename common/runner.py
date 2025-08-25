@@ -58,6 +58,8 @@ class AutoMLRunner(ABC):
             handlers=logging_handlers
         )
 
+        logger.info(f"Optimization metrics are {self._metrics}.")
+
     @final
     def _run_on_task(self, task: Union[pd.DataFrame, np.ndarray]) -> None:
         if task is None:
@@ -93,9 +95,6 @@ class AutoMLRunner(ABC):
         if number_of_positives is None:
             raise ValueError("Unknown positive class label.")
 
-        number_of_train_instances_by_class = Counter(y_train)
-        logger.info(number_of_train_instances_by_class)
-
         dataset_size_in_mb = int(pd.DataFrame(X_train).memory_usage(deep=True).sum() / (1024 ** 2))
         logger.info(f"Train sample size is {dataset_size_in_mb} mb.")
         if isinstance(self._automl, Imbaml):
@@ -125,7 +124,6 @@ class AutoMLSingleRunner(AutoMLRunner):
 
     @Decorators.log_exception
     def run(self) -> None:
-        logger.info(f"Optimization metric is {self._metrics[0]}.")
         self._run_on_task(self._task)
 
 
@@ -144,7 +142,6 @@ class AutoMLBenchmarkRunner(AutoMLRunner):
 
     @Decorators.log_exception
     def run(self) -> None:
-        logger.info(f"Optimization metrics are {self._metrics}.")
         for task in self._repository.get_datasets():
             self._run_on_task(task)
 
