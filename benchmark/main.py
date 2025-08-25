@@ -49,9 +49,9 @@ class AutoMLBenchmark:
                     Invalid --preset option.
                     Options available: ['medium_quality', 'good_quality', 'high_quality', 'best_quality', 'extreme_quality'].
                     """)
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='ag', preset=ag_preset, log_to_filesystem=log_to_filesystem)
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='ag', preset=ag_preset, log_to_file=log_to_filesystem)
         elif automl == 'flaml':
-            bench_runner = AutoMLBenchmarkRunner(metrics, automl='flaml', log_to_filesystem=log_to_filesystem)
+            bench_runner = AutoMLBenchmarkRunner(metrics, automl='flaml', log_to_file=log_to_filesystem)
         else:
             raise ValueError(
                 """
