@@ -1,5 +1,5 @@
 import logging
-from typing import Union, Callable
+from typing import Union, Callable, Dict
 
 import numpy as np
 import pandas as pd
@@ -10,6 +10,7 @@ from ray.tune import ResultGrid
 from ray.tune.search import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
 from ray.tune.search.optuna import OptunaSearch
+from ray.tune.schedulers import ASHAScheduler
 from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score, recall_score, \
     precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
@@ -55,9 +56,14 @@ class ImbamlOptimizer:
             y=y,
             cv=StratifiedKFold(n_splits=8),
             scoring=make_scorer(metric),
-            error_score='raise').mean()
+            error_score='raise'
+        ).mean()
 
-        return {'loss': -loss_value, 'status': STATUS_OK}
+        return {
+            'loss': -loss_value,
+            'model': str(model_class(**hyper_parameters)),
+            'status': STATUS_OK
+        }
 
     def fit(
         self,
@@ -102,6 +108,8 @@ class ImbamlOptimizer:
                 mode='min'),
             max_concurrent=4)
 
+        scheduler = ASHAScheduler(reduction_factor=5)
+
         # TODO: Consider reusage of actors.
         tuner = ray.tune.Tuner(
             RayTuner.trainable,
@@ -109,7 +117,8 @@ class ImbamlOptimizer:
                 metric='loss',
                 mode='min',
                 search_alg=search_algo,
-                num_samples=self._n_evals),
+                num_samples=self._n_evals,
+                scheduler=scheduler),
             run_config=ray.train.RunConfig(
                 verbose=self._verbosity
             )
