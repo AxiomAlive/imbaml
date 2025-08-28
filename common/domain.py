@@ -1,7 +1,8 @@
 import uuid
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
+import numpy as np
 import pandas as pd
 
 
@@ -9,6 +10,6 @@ import pandas as pd
 class Dataset:
     id: int
     name: str
-    X: pd.DataFrame
-    y: pd.DataFrame
+    X: Union[pd.DataFrame, np.ndarray]
+    y: Union[pd.Series, np.ndarray]
     target_label: Optional[str] = None
