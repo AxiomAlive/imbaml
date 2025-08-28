@@ -28,8 +28,7 @@ class AutoML(ABC):
         X_train: Union[np.ndarray, pd.DataFrame],
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
-        target_label: Optional[str],
-        dataset_name: str
+        target_label: Optional[str]
     ) -> None:
         raise NotImplementedError()
 
@@ -107,7 +106,7 @@ class Imbaml(AutoML):
         verbosity=0,
         leaderboard=False
     ):
-        self._dataset_size = None
+        self._dataset_size: Optional[int] = None
         self._verbosity = verbosity
         if sanity_check:
             self._n_evals = 6
@@ -126,16 +125,15 @@ class Imbaml(AutoML):
         X_train: Union[np.ndarray, pd.DataFrame],
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
-        target_label: Optional[str],
-        dataset_name: str
+        target_label: Optional[str]
     ) -> None:
         n_evals = self._n_evals
         if not self._sanity_check:
-            if self.dataset_size is None:
+            if self._dataset_size is None:
                 raise ValueError("Dataset size is undefined.")
-            if self.dataset_size > 50:
+            if self._dataset_size > 50:
                 n_evals //= 4
-            elif self.dataset_size > 5:
+            elif self._dataset_size > 5:
                 n_evals //= 3
 
         optimizer = ImbamlOptimizer(
@@ -157,28 +155,19 @@ class Imbaml(AutoML):
             self._log_val_loss_alongside_fitted_model(val_losses)
 
         best_trial = fit_results.get_best_result(metric='loss', mode='min')
-        if best_trial is None:
-            raise ValueError("No best trial.")
 
-        best_trial_metrics = getattr(best_trial, 'metrics')
+        best_trial_metrics = best_trial.get('metrics')
         if best_trial_metrics is None:
-            raise ValueError("No best trial metrics.")
+            raise ValueError("Task run failed. No best trial.")
 
         best_validation_loss = best_trial_metrics.get('loss')
-        if best_validation_loss is None:
-            raise ValueError("No best trial validation loss.")
 
         best_algorithm_configuration = best_trial_metrics.get('config').get('search_configurations')
-        if best_algorithm_configuration is None:
-            raise ValueError("No best trial algorithm configuration.")
 
         best_model_class = best_algorithm_configuration.get('model_class')
-        if best_model_class is None:
-            raise ValueError("No best trial model class.")
-
         best_algorithm_configuration.pop('model_class')
-        best_model = best_model_class(**best_algorithm_configuration)
 
+        best_model = best_model_class(**best_algorithm_configuration)
         model_with_loss = {best_model: best_validation_loss}
         self._log_val_loss_alongside_fitted_model(model_with_loss)
 
@@ -237,64 +226,48 @@ class AutoGluon(AutoML):
         X_train: Union[np.ndarray, pd.DataFrame],
         y_train: Union[np.ndarray, pd.Series],
         metric_name: str,
-        target_label: Optional[str],
-        dataset_name: str
+        target_label: Optional[str]
     ) -> None:
-        if metric_name  not in ['f1', 'balanced_accuracy', 'average_precision']:
+        if metric_name not in ['f1', 'balanced_accuracy', 'average_precision']:
             raise ValueError(f"Metric {metric_name} is not supported.")
 
         if target_label is None and isinstance(X_train, np.ndarray):
-            dataset_train = pd.DataFrame(data=np.column_stack([X_train, y_train]))
-            autogluon_dataset_train = pd.DataFrame(dataset_train)
-            target_label = list(autogluon_dataset_train.columns)[-1]
+            Xy_train = pd.DataFrame(data=np.column_stack([X_train, y_train]))
+            target_label = list(Xy_train.columns)[-1]
         else:
-            dataset_train = pd.DataFrame(
+            Xy_train = pd.DataFrame(
                 data=np.column_stack([X_train, y_train]),
                 columns=[*X_train.columns, target_label])
 
-            dataset_train2 = pd.DataFrame(
-                dataset_train,
-                columns=[*X_train.columns, target_label])
-            autogluon_dataset_train = TabularDataset(dataset_train)
-            logger.info(dataset_train.equals(dataset_train2))
-
-        autogluon_predictor = TabularPredictor(
+        dataset = TabularDataset(Xy_train)
+        predictor = TabularPredictor(
             problem_type='binary',
             label=target_label,
             eval_metric=metric_name,
             verbosity=self._verbosity
-        ).fit(
-            autogluon_dataset_train,
-            presets=[self._preset],
-        )
+        ).fit(dataset)
 
-        val_scores = autogluon_predictor.leaderboard().get('score_val')
-        if len(val_scores) == 0:
+        val_scores = predictor.leaderboard().get('score_val')
+        if val_scores is None or len(val_scores) == 0:
             logger.error("No best model found.")
             return
 
-        best_model_name = autogluon_predictor.model_best
+        best_model_name = predictor.model_best
 
         val_losses = {best_model_name: np.float64(val_scores.max())}
         self._log_val_loss_alongside_fitted_model(val_losses)
 
-        autogluon_predictor.delete_models(models_to_keep=best_model_name, dry_run=False)
+        predictor.delete_models(models_to_keep=best_model_name, dry_run=False)
 
-        self._fitted_model = autogluon_predictor
+        self._fitted_model = predictor
 
 
 class FLAML(AutoML):
     def __init__(self):
         pass
 
-    def fit(
-        self,
-        X_train: Union[np.ndarray, pd.DataFrame],
-        y_train: Union[np.ndarray, pd.Series],
-        metric_name: str,
-        target_label: Optional[str],
-        dataset_name: str
-    ) -> None:
+    def fit(self, X_train: Union[np.ndarray, pd.DataFrame], y_train: Union[np.ndarray, pd.Series], metric_name: str,
+            target_label: Optional[str]) -> None:
         metric = None
         if metric_name == 'average_precision':
             metric = 'ap'
@@ -304,7 +277,7 @@ class FLAML(AutoML):
             raise ValueError(f"Metric {metric_name} is not supported.")
 
         automl = FLAMLPredictor()
-        automl.fit(X_train, y_train, task='classification', metric=metric)
+        automl.fit(X_train, y_train, metric=metric)
 
         best_loss = automl.best_loss
         best_model = automl.best_estimator
