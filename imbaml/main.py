@@ -24,7 +24,7 @@ from imbaml.search_space.classical.mlp import MLPClassifierGenerator
 logger = logging.getLogger(__name__)
 
 
-#TODO: redesign to inherit from ray.tune.Trainable.
+# TODO: redesign to inherit from ray.tune.Trainable.
 class RayTuner:
     @staticmethod
     def trainable(config):
@@ -34,16 +34,15 @@ class RayTuner:
             config['X'],
             config['y'])
         ray.train.report(trial_result)
-
-
+        
 class ImbamlOptimizer:
     def __init__(self, metric, n_evals, verbosity=0, re_init=True):
         self._metric = metric
         self._n_evals = n_evals
         self._verbosity = verbosity
         if re_init:
-            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
-
+            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)   
+                
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
         hyper_parameters = hyper_parameters.copy()
@@ -80,15 +79,15 @@ class ImbamlOptimizer:
         else:
             raise ValueError(f"Metric {self._metric} is not supported.")
 
-        # AdaReweighted family produces a bunch of erroneous trials.
+        # TODO: fix - AdaReweighted family produces a bunch of erroneous trials.
         search_space = [
-            XGBClassifierGenerator.generate(),
-            AdaReweightedGenerator.generate(AdaCostClassifier),
-            BalancedRandomForestClassifierGenerator.generate(),
-            BalancedBaggingClassifierGenerator.generate(),
-            LGBMClassifierGenerator.generate(),
+            # XGBClassifierGenerator.generate(),
+            # AdaReweightedGenerator.generate(AdaCostClassifier),
+            # BalancedRandomForestClassifierGenerator.generate(),
+            # BalancedBaggingClassifierGenerator.generate(),
+            # LGBMClassifierGenerator.generate(),
             ExtraTreesGenerator.generate(),
-            MLPClassifierGenerator.generate()
+            # MLPClassifierGenerator.generate()
         ]
 
         search_configurations = hp.choice("search_configurations", search_space)
@@ -108,7 +107,7 @@ class ImbamlOptimizer:
                 mode='min'),
             max_concurrent=4)
 
-        scheduler = ASHAScheduler(reduction_factor=5)
+        scheduler = ASHAScheduler(reduction_factor=3)
 
         # TODO: Consider reusage of actors.
         tuner = ray.tune.Tuner(

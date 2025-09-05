@@ -1,11 +1,10 @@
-venv/
+.venv/
 
 .idea/
 .vscode/
 *.iml
 *.lock
 *.out
-pyproject.toml
 
 AGModels/
 AutogluonModels/
@@ -15,9 +14,10 @@ InstanceSpace-master/
 imbalanced-ensemble/
 logs/
 openml_cache/
-test/
+obsidian/
 imbaml/search_space/classifiers_tpot/
 stash/
+tests/*
 
 __pycache__/
 *.pkl
