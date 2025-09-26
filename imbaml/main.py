@@ -17,6 +17,7 @@ from lightgbm import LGBMClassifier
 from sklearn.ensemble import *
 from imblearn.ensemble import *
 from imbens.ensemble import *
+from sklearn.neural_network import *
 
 logger = logging.getLogger(__name__)
 
