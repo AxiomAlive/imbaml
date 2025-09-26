@@ -1,25 +1,22 @@
 import logging
-from typing import Union, Callable, Dict
+from typing import Union, Callable
 
 import numpy as np
 import pandas as pd
 import ray
 from hyperopt import hp, STATUS_OK
-from imbens.ensemble import AdaCostClassifier
 from ray.tune import ResultGrid
 from ray.tune.search import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
-from ray.tune.search.optuna import OptunaSearch
 from ray.tune.schedulers import ASHAScheduler
-from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score, recall_score, \
-    precision_score
+from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 
-from imbaml.search_space.classical.ensemble.bag import ExtraTreesGenerator
-from imbaml.search_space.classical.ensemble.boost import XGBClassifierGenerator, LGBMClassifierGenerator
-from imbaml.search_space.with_balancing.ensemble.bag import BalancedRandomForestClassifierGenerator, BalancedBaggingClassifierGenerator
-from imbaml.search_space.with_balancing.ensemble.boost import AdaReweightedGenerator
-from imbaml.search_space.classical.mlp import MLPClassifierGenerator
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+from sklearn.ensemble import *
+from imblearn.ensemble import *
+from imbens.ensemble import *
 
 logger = logging.getLogger(__name__)
 
@@ -33,15 +30,16 @@ class RayTuner:
             config['metric'],
             config['X'],
             config['y'])
-        ray.train.report(trial_result)
-        
+        ray.train.report(trial_result)        
+
+
 class ImbamlOptimizer:
     def __init__(self, metric, n_evals, verbosity=0, re_init=True):
         self._metric = metric
         self._n_evals = n_evals
         self._verbosity = verbosity
         if re_init:
-            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)   
+            ray.init(object_store_memory=10**9, log_to_driver=False, logging_level=logging.ERROR)
                 
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
@@ -80,15 +78,27 @@ class ImbamlOptimizer:
             raise ValueError(f"Metric {self._metric} is not supported.")
 
         # TODO: fix - AdaReweighted family produces a bunch of erroneous trials.
-        search_space = [
+        # search_space = [
             # XGBClassifierGenerator.generate(),
             # AdaReweightedGenerator.generate(AdaCostClassifier),
             # BalancedRandomForestClassifierGenerator.generate(),
             # BalancedBaggingClassifierGenerator.generate(),
             # LGBMClassifierGenerator.generate(),
-            ExtraTreesGenerator.generate(),
+            # ExtraTreesGenerator.generate(),
             # MLPClassifierGenerator.generate()
+        # ]
+
+        estimators = [
+            ("xgb", XGBClassifier()),
+            ("ada", AdaCostClassifier()),
+            ("rf", BalancedRandomForestClassifier()),
+            ("bag", BalancedBaggingClassifier()),
+            ("lgbm", LGBMClassifier()),
+            ("extra", ExtraTreesClassifier()),
+            ("mlp", MLPClassifier()),
         ]
+        search_space = StackingClassifier(estimators)
+        logger.info(search_space)
 
         search_configurations = hp.choice("search_configurations", search_space)
 
