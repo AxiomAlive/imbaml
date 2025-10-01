@@ -25,4 +25,5 @@ __pycache__/
 cloud.yaml
 example.py
 
-
+**.egg-info
+build/

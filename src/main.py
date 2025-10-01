@@ -99,7 +99,7 @@ class ImbamlOptimizer:
             ("mlp", MLPClassifier()),
         ]
         search_space = StackingClassifier(estimators)
-        logger.info(search_space)
+        logger.info(f"Search space: {search_space}")
 
         search_configurations = hp.choice("search_configurations", search_space)
 
