@@ -12,12 +12,7 @@ from ray.tune.schedulers import ASHAScheduler
 from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-from sklearn.ensemble import *
-from imblearn.ensemble import *
-from imbens.ensemble import *
-from sklearn.neural_network import *
+from imbaml.search_space.classical.ensemble.stack import StackingClassifierGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +40,10 @@ class ImbamlOptimizer:
     @classmethod
     def compute_metric_score(cls, hyper_parameters, metric, X, y):
         hyper_parameters = hyper_parameters.copy()
+
         model_class = hyper_parameters.pop('model_class')
+        hyper_parameters['estimators'] = list(hyper_parameters.get("estimators"))
+
         clf = model_class(**hyper_parameters)
 
         loss_value = cross_val_score(
@@ -59,7 +57,7 @@ class ImbamlOptimizer:
 
         return {
             'loss': -loss_value,
-            'model': str(model_class(**hyper_parameters)),
+            'model': str(hyper_parameters),
             'status': STATUS_OK
         }
 
@@ -78,36 +76,12 @@ class ImbamlOptimizer:
         else:
             raise ValueError(f"Metric {self._metric} is not supported.")
 
-        # TODO: fix - AdaReweighted family produces a bunch of erroneous trials.
-        # search_space = [
-            # XGBClassifierGenerator.generate(),
-            # AdaReweightedGenerator.generate(AdaCostClassifier),
-            # BalancedRandomForestClassifierGenerator.generate(),
-            # BalancedBaggingClassifierGenerator.generate(),
-            # LGBMClassifierGenerator.generate(),
-            # ExtraTreesGenerator.generate(),
-            # MLPClassifierGenerator.generate()
-        # ]
-
-        estimators = [
-            ("xgb", XGBClassifier()),
-            ("ada", AdaCostClassifier()),
-            ("rf", BalancedRandomForestClassifier()),
-            ("bag", BalancedBaggingClassifier()),
-            ("lgbm", LGBMClassifier()),
-            ("extra", ExtraTreesClassifier()),
-            ("mlp", MLPClassifier()),
-        ]
-        search_space = StackingClassifier(estimators)
-        logger.info(f"Search space: {search_space}")
-
-        search_configurations = hp.choice("search_configurations", search_space)
-
+        search_space = StackingClassifierGenerator.generate()
         ray_configuration = {
             'X': X,
             'y': y,
             'metric': metric,
-            'search_configurations': search_configurations
+            'search_configurations': search_space
         }
 
         # HyperOptSearch(points_to_evaluate = promising initial points)
@@ -120,14 +94,14 @@ class ImbamlOptimizer:
 
         scheduler = ASHAScheduler(reduction_factor=3)
 
-        # TODO: Consider reusage of actors.
+        # TODO: Consider re-usage of actors.
         tuner = ray.tune.Tuner(
             RayTuner.trainable,
             tune_config=ray.tune.TuneConfig(
                 metric='loss',
                 mode='min',
                 search_alg=search_algo,
-                num_samples=self._n_evals,
+                num_samples=1,
                 scheduler=scheduler),
             run_config=ray.train.RunConfig(
                 verbose=self._verbosity

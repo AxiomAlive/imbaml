@@ -5,7 +5,7 @@ requires-python = ">=3.10"
 dependencies = [
     "imbalanced-ensemble==0.2.2",
     "ray==2.40.0",
-    "hyperopt==0.2.7",
+    "hyperopt",
     "lightgbm==4.6.0",
     "scikit_learn==1.6.1",
     "xgboost==3.0.2",
@@ -20,3 +20,9 @@ dependencies = [
     "fsspec>=2025.9.0",
     "pyarrow>=21.0.0",
 ]
+
+[tool.setuptools.packages.find]
+include = ["imbaml"]
+
+[tool.uv.sources]
+hyperopt = { git = "https://github.com/hyperopt/hyperopt" }
