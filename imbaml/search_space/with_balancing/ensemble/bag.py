@@ -23,7 +23,7 @@ class BalancedBaggingClassifierGenerator(EstimatorSpaceGenerator):
         return param_map
 
 
-class BalancedRandomForestClassifierGenerator(RandomForestGenerator):
+class BRFClassifierGenerator(RandomForestGenerator):
     @classmethod
     def generate(cls, model_class=None):
         param_map = super().generate()

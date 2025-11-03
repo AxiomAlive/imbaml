@@ -1,18 +1,22 @@
-import logging
-from typing import Union, Callable
-
-import numpy as np
-import pandas as pd
 import ray
-from hyperopt import hp, STATUS_OK
+from hyperopt import hp
+from typing import Callable
+from hyperopt import STATUS_OK
 from ray.tune import ResultGrid
 from ray.tune.search import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
 from ray.tune.schedulers import ASHAScheduler
 from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
+from imbens.ensemble import AdaCostClassifier, AsymBoostClassifier
 
-from imbaml.search_space.classical.ensemble.stack import StackingClassifierGenerator
+from imbaml.search_space.classical.ensemble.boost import *
+from imbaml.search_space.classical.ensemble.bag import *
+from imbaml.search_space.classical.ensemble.stack import *
+from imbaml.search_space.classical.nn import *
+from imbaml.search_space.with_balancing.ensemble.boost import *
+from imbaml.search_space.with_balancing.ensemble.bag import *
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +30,11 @@ class RayTuner:
             config['metric'],
             config['X'],
             config['y'])
-        ray.train.report(trial_result)        
+        ray.train.report(trial_result)
 
 
 class ImbamlOptimizer:
-    def __init__(self, metric, n_evals, verbosity=0, re_init=True):
+    def __init__(self, metric, n_evals, verbosity=0, re_init=True, random_state=42):
         self._metric = metric
         self._n_evals = n_evals
         self._verbosity = verbosity
@@ -42,7 +46,6 @@ class ImbamlOptimizer:
         hyper_parameters = hyper_parameters.copy()
 
         model_class = hyper_parameters.pop('model_class')
-        hyper_parameters['estimators'] = list(hyper_parameters.get("estimators"))
 
         clf = model_class(**hyper_parameters)
 
@@ -76,12 +79,21 @@ class ImbamlOptimizer:
         else:
             raise ValueError(f"Metric {self._metric} is not supported.")
 
-        search_space = StackingClassifierGenerator.generate()
+        # TODO: think about reproduction with certain seed/random_state.
+        search_space = [
+            XGBClassifierGenerator.generate(),
+            AdaReweightedGenerator.generate(AdaCostClassifier),
+            BRFClassifierGenerator.generate(),
+            BalancedBaggingClassifierGenerator.generate(),
+            LGBMClassifierGenerator.generate(),
+            ExtraTreesGenerator.generate(),
+            MLPClassifierGenerator.generate()
+        ]
         ray_configuration = {
             'X': X,
             'y': y,
             'metric': metric,
-            'search_configurations': search_space
+            'search_configurations': hp.choice("search_space", search_space)
         }
 
         # HyperOptSearch(points_to_evaluate = promising initial points)
@@ -101,7 +113,7 @@ class ImbamlOptimizer:
                 metric='loss',
                 mode='min',
                 search_alg=search_algo,
-                num_samples=1,
+                num_samples=self._n_evals,
                 scheduler=scheduler),
             run_config=ray.train.RunConfig(
                 verbose=self._verbosity
