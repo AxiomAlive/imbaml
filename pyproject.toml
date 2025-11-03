@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["imbaml"]
+where = ["."]
 
 [tool.uv.sources]
 hyperopt = { git = "https://github.com/hyperopt/hyperopt" }
