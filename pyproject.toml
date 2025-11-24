@@ -19,6 +19,7 @@ dependencies = [
     "setuptools>=80.9.0",
     "fsspec>=2025.9.0",
     "pyarrow>=21.0.0",
+    "loguru"
 ]
 
 [tool.setuptools.packages.find]

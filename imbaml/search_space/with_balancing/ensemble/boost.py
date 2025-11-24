@@ -18,11 +18,10 @@ from hyperopt import hp
 from typing import TypeVar
 from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
+from loguru import logger
 
 from imbaml.search_space import EstimatorSpaceGenerator
 from imbaml.search_space.classical.ensemble.boost import AdaBoostClassifierGenerator
-
-logger = logging.getLogger(__name__)
 
 
 class AdaReweightedGenerator(AdaBoostClassifierGenerator):

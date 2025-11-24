@@ -16,9 +16,7 @@ from imbaml.search_space.classical.ensemble.stack import *
 from imbaml.search_space.classical.nn import *
 from imbaml.search_space.with_balancing.ensemble.boost import *
 from imbaml.search_space.with_balancing.ensemble.bag import *
-
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 # TODO: redesign to inherit from ray.tune.Trainable.

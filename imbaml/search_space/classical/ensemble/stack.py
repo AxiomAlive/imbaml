@@ -8,9 +8,9 @@ from sklearn.ensemble import *
 from imblearn.ensemble import *
 from imbens.ensemble import *
 from sklearn.neural_network import *
+from loguru import logger
 
 
-logger = logging.getLogger(__name__)
 
 
 class StackingClassifierGenerator(EstimatorSpaceGenerator):

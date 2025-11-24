@@ -18,12 +18,9 @@ from hyperopt import hp
 from typing import TypeVar
 from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
-from utils.decorators import Decorators
+from loguru import logger
 
 from imbaml.search_space import EstimatorSpaceGenerator
-
-
-logger = logging.getLogger(__name__)
 
 
 class AdaBoostClassifierGenerator(EstimatorSpaceGenerator):
@@ -62,7 +59,6 @@ class LGBMClassifierGenerator(XGBClassifierGenerator):
     boosting_type = hp.choice('lgbm.boosting_type', ['gbdt', 'dart', 'goss'])
 
     @classmethod
-    @Decorators.remove_unnecessary_hp(hp='colsample_bylevel')
     def generate(cls, model_class=None):
         param_map = super().generate()
         param_map.update({'model_class': LGBMClassifier})
