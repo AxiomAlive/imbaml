@@ -9,21 +9,21 @@ from ray.tune.schedulers import ASHAScheduler
 from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from imbens.ensemble import AdaCostClassifier, AsymBoostClassifier
-
-from imbaml.search_space.classical.ensemble.boost import *
-from imbaml.search_space.classical.ensemble.bag import *
-from imbaml.search_space.classical.ensemble.stack import *
-from imbaml.search_space.classical.nn import *
-from imbaml.search_space.with_balancing.ensemble.boost import *
-from imbaml.search_space.with_balancing.ensemble.bag import *
 from loguru import logger
+
+from core.search_space.classical.ensemble.boost import *
+from core.search_space.classical.ensemble.bag import *
+from core.search_space.classical.ensemble.stack import *
+from core.search_space.classical.nn import *
+from core.search_space.with_balancing.ensemble.boost import *
+from core.search_space.with_balancing.ensemble.bag import *
 
 
 # TODO: redesign to inherit from ray.tune.Trainable.
 class RayTuner:
     @staticmethod
     def trainable(config):
-        trial_result = ImbamlOptimizer.compute_metric_score(
+        trial_result = Optimizer.compute_metric_score(
             config['search_configurations'],
             config['metric'],
             config['X'],
@@ -31,7 +31,7 @@ class RayTuner:
         ray.train.report(trial_result)
 
 
-class ImbamlOptimizer:
+class Optimizer:
     def __init__(self, metric, n_evals, verbosity=0, re_init=True, random_state=42):
         self._metric = metric
         self._n_evals = n_evals
@@ -78,6 +78,7 @@ class ImbamlOptimizer:
             raise ValueError(f"Metric {self._metric} is not supported.")
 
         # TODO: think about reproduction with certain seed/random_state.
+        # TRASH!
         search_space = [
             XGBClassifierGenerator.generate(),
             AdaReweightedGenerator.generate(AdaCostClassifier),
