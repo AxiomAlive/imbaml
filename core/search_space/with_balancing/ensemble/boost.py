@@ -20,8 +20,8 @@ from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
 from loguru import logger
 
-from imbaml.search_space import EstimatorSpaceGenerator
-from imbaml.search_space.classical.ensemble.boost import AdaBoostClassifierGenerator
+from core.search_space import EstimatorSpaceGenerator
+from core.search_space.classical.ensemble.boost import AdaBoostClassifierGenerator
 
 
 class AdaReweightedGenerator(AdaBoostClassifierGenerator):

@@ -4,7 +4,7 @@ from hyperopt.pyll import scope
 from imblearn.ensemble import BalancedBaggingClassifier, BalancedRandomForestClassifier
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 
-from imbaml.search_space import EstimatorSpaceGenerator
+from core.search_space import EstimatorSpaceGenerator
 
 
 class RandomForestGenerator(EstimatorSpaceGenerator):

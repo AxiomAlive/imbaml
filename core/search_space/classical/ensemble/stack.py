@@ -1,6 +1,6 @@
 import logging
 
-from imbaml.search_space import EstimatorSpaceGenerator
+from core.search_space import EstimatorSpaceGenerator
 
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier

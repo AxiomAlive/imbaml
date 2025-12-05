@@ -20,7 +20,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from xgboost import XGBClassifier
 from loguru import logger
 
-from imbaml.search_space import EstimatorSpaceGenerator
+from core.search_space import EstimatorSpaceGenerator
 
 
 class AdaBoostClassifierGenerator(EstimatorSpaceGenerator):

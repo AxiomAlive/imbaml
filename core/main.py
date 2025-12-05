@@ -8,14 +8,14 @@ from ray.tune.search.hyperopt import HyperOptSearch
 from ray.tune.schedulers import ASHAScheduler
 from sklearn.metrics import make_scorer, f1_score, balanced_accuracy_score, average_precision_score
 from sklearn.model_selection import cross_val_score, StratifiedKFold
-from imbens.ensemble import AdaCostClassifier, AsymBoostClassifier
+# from imbens.ensemble import AdaCostClassifier, AsymBoostClassifier
 from loguru import logger
 
 from core.search_space.classical.ensemble.boost import *
 from core.search_space.classical.ensemble.bag import *
 from core.search_space.classical.ensemble.stack import *
 from core.search_space.classical.nn import *
-from core.search_space.with_balancing.ensemble.boost import *
+# from core.search_space.with_balancing.ensemble.boost import *
 from core.search_space.with_balancing.ensemble.bag import *
 
 
@@ -81,7 +81,7 @@ class Optimizer:
         # TRASH!
         search_space = [
             XGBClassifierGenerator.generate(),
-            AdaReweightedGenerator.generate(AdaCostClassifier),
+            # AdaReweightedGenerator.generate(AdaCostClassifier),
             BRFClassifierGenerator.generate(),
             BalancedBaggingClassifierGenerator.generate(),
             LGBMClassifierGenerator.generate(),
